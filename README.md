@@ -16,14 +16,6 @@
     - [接口树 Controller 名称](#接口树-controller-名称)
   - [注意事项](#注意事项)
   - [开发指南](#开发指南)
-- [English Introduction](#english-introduction)
-  - [Features](#features)
-  - [Installation & Usage](#installation--usage)
-  - [HTML Offline Documentation](#html-offline-documentation)
-  - [How Descriptions Are Resolved](#how-descriptions-are-resolved)
-    - [API Tree Controller Name](#api-tree-controller-name)
-  - [Notes & Caveats](#notes--caveats)
-  - [Development](#development)
 
 ---
 
