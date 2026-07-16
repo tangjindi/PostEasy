@@ -73,7 +73,7 @@
 
 ### 下载安装
 
-从 [GitHub Releases](https://github.com) 页面下载对应平台的安装包：
+从 [GitHub Releases](https://github.com/tangjindi/PostEasy/releases) 页面下载对应平台的安装包：
 
 | 平台 | 文件 |
 |------|------|
