@@ -27,6 +27,49 @@
 
 ---
 
+## 📸 应用截图 / Screenshots
+
+<table>
+  <tr>
+    <td align="center"><b>中文</b></td>
+    <td align="center"><b>English</b></td>
+  </tr>
+  <tr>
+    <td><img src="resources/images/首页.jpg" alt="首页" width="100%"></td>
+    <td><img src="resources/images/首页EN.jpg" alt="Homepage" width="100%"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>首页 / Homepage</b></td>
+    <td align="center"></td>
+  </tr>
+  <tr>
+    <td><img src="resources/images/扫描页.jpg" alt="扫描页" width="100%"></td>
+    <td><img src="resources/images/扫描页EN.jpg" alt="Scan Page" width="100%"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>扫描页 / Scan Page</b></td>
+    <td align="center"></td>
+  </tr>
+  <tr>
+    <td><img src="resources/images/导出页.jpg" alt="导出页" width="100%"></td>
+    <td><img src="resources/images/导出页EN.jpg" alt="Export Page" width="100%"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>导出页 / Export Page</b></td>
+    <td align="center"></td>
+  </tr>
+  <tr>
+    <td><img src="resources/images/html接口文档.jpg" alt="HTML接口文档" width="100%"></td>
+    <td><img src="resources/images/html接口文档EN.jpg" alt="HTML API Documentation" width="100%"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>HTML 接口文档 / HTML API Documentation</b></td>
+    <td align="center"></td>
+  </tr>
+</table>
+
+---
+
 # 中文介绍
 
 ## 功能特性
