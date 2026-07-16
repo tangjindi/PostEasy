@@ -368,6 +368,55 @@ function extractJavadoc(node: Parser.SyntaxNode): string {
   return ''
 }
 
+// ---- Field Comment Extraction ----
+
+/**
+ * Extract a short description from the comment adjacent to a field/parameter node.
+ * Priority: block_comment (javadoc) first line &gt; line_comment (//) above &gt; line_comment inline
+ */
+function extractFieldCommentDescription(node: Parser.SyntaxNode): string {
+  const parent = node.parent
+  if (!parent) return ''
+
+  const children = parent.namedChildren
+  const idx = children.indexOf(node)
+
+  // 1) Previous sibling — block_comment (/** */): take first non-@tag line
+  if (idx > 0) {
+    const prev = children[idx - 1]
+    if (prev.type === 'block_comment') {
+      const firstLine = extractFirstLineFromBlockComment(prev.text)
+      if (firstLine) return firstLine
+    }
+    // 2) Previous sibling — line_comment (//): take the text
+    if (prev.type === 'line_comment') {
+      const text = prev.text.replace(/^\/\/\s*/, '').trim()
+      if (text) return text
+    }
+  }
+
+  // 3) Next sibling — line_comment (//): inline comment at end of line
+  if (idx < children.length - 1) {
+    const next = children[idx + 1]
+    if (next.type === 'line_comment') {
+      const text = next.text.replace(/^\/\/\s*/, '').trim()
+      if (text) return text
+    }
+  }
+
+  return ''
+}
+
+/** Extract the first non-@tag line from a block_comment text. */
+function extractFirstLineFromBlockComment(raw: string): string {
+  return raw
+    .replace(/^\/\*\*?\s*\n?/, '')
+    .replace(/\s*\*\/\s*$/, '')
+    .split('\n')
+    .map(line => line.replace(/^\s*\*\s?/, '').trim())
+    .filter(line => line && !line.startsWith('@'))[0] || ''
+}
+
 // ---- Method Extraction ----
 
 function extractMethods(
@@ -606,6 +655,7 @@ function extractParameters(
     const description =
       extractAnnotationValue(paramAnnotations, 'Parameter', 'description') ||
       extractAnnotationValue(paramAnnotations, 'ApiParam', 'value') ||
+      extractFieldCommentDescription(child) ||
       ''
 
     // Validation constraints
@@ -820,10 +870,11 @@ function extractTypeFields(node: Parser.SyntaxNode): TypeField[] {
     const fieldName = nameNode.text
     const fieldType = typeNode.text
 
-    // Description: @Schema > @ApiModelProperty
+    // Description: @Schema > @ApiModelProperty > /** */ first line > // comment
     const description =
       extractAnnotationValue(fieldAnnotations, 'Schema', 'description') ||
       extractAnnotationValue(fieldAnnotations, 'ApiModelProperty', 'value') ||
+      extractFieldCommentDescription(child) ||
       ''
 
     fields.push({

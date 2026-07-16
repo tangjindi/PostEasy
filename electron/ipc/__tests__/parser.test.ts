@@ -108,6 +108,38 @@ describe('PostEasy Parser Integration', () => {
     expect(fileParam).toBeDefined()
   })
 
+  it('extracts field descriptions from comments as fallback', () => {
+    const result = scanJavaProject({ rootPath: FIXTURES_DIR })
+    const parsed = parseControllers(
+      result.controllerFiles,
+      result.javaFiles,
+      FIXTURES_DIR,
+      result.configHints
+    )
+
+    // Find CreateUserRequest in type registry via a method that uses it as @RequestBody
+    const userCtrl = parsed.controllers.find(c => c.className === 'UserController')!
+    const createUser = userCtrl.methods.find(m => m.methodName.includes('createUser'))!
+    const bodyParam = createUser.parameters.find(p => p.location === 'body')!
+    expect(bodyParam.children).toBeDefined()
+
+    const fields = bodyParam.children!
+    // Annotation-based description still works
+    const usernameField = fields.find(f => f.name === 'username')
+    expect(usernameField).toBeDefined()
+    expect(usernameField!.description).toBe('用户登录名')
+
+    // // comment-based description (line_comment above field)
+    const ageField = fields.find(f => f.name === 'age')
+    expect(ageField).toBeDefined()
+    expect(ageField!.description).toContain('双斜杠注释提取')
+
+    // /** */ comment-based description (block_comment above field)
+    const phoneField = fields.find(f => f.name === 'phone')
+    expect(phoneField).toBeDefined()
+    expect(phoneField!.description).toContain('Javadoc 注释提取')
+  })
+
   it('parses response types', () => {
     const result = scanJavaProject({ rootPath: FIXTURES_DIR })
     const parsed = parseControllers(

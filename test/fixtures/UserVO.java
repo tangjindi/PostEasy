@@ -24,4 +24,7 @@ public class UserVO {
 
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
+
+    // 手机号
+    private String phone;
 }

@@ -26,4 +26,12 @@ public class CreateUserRequest {
 
     @Schema(description = "性别")
     private Gender gender;
+
+    // 年龄 — 测试双斜杠注释提取
+    private Integer age;
+
+    /**
+     * 手机号 — 测试 Javadoc 注释提取
+     */
+    private String phone;
 }
