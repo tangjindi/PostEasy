@@ -1,0 +1,38 @@
+appId: com.posteasy.app
+productName: PostEasy
+npmRebuild: true
+directories:
+  buildResources: resources
+  output: release
+files:
+  - dist/**/*
+  - package.json
+  - resources/**/*
+extraResources:
+  - from: templates/
+    to: templates/
+    filter:
+      - '**/*'
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: '${productName}-Setup-${version}-win.${ext}'
+  icon: resources/icon.ico
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  artifactName: '${productName}-${version}-mac-${arch}.${ext}'
+  icon: resources/icon.icns
+  category: public.app-category.developer-tools
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+dmg:
+  title: '${productName} ${version}'
+linux:
+  target: []

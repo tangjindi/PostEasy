@@ -1,0 +1,1902 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{projectName}} - API 文档</title>
+<style>
+:root {
+  --bg: #ffffff; --bg2: #f8fafc; --bg3: #f1f5f9;
+  --text: #1e293b; --text2: #64748b; --text3: #94a3b8;
+  --border: #e2e8f0; --accent: #3b82f6; --accent-hover: #2563eb;
+  --accent-bg: #eff6ff; --error: #ef4444; --error-bg: #fef2f2;
+  --success: #22c55e; --success-bg: #f0fdf4;
+  --warning: #f59e0b; --warning-bg: #fffbeb;
+  --shadow: 0 1px 3px rgba(0,0,0,.08);
+  --radius: 8px;
+  --mono: 'JetBrains Mono','Fira Code',Consolas,monospace;
+  --sidebar-w: 320px;
+}
+.dark {
+  --bg: #0f172a; --bg2: #1e293b; --bg3: #334155;
+  --text: #f1f5f9; --text2: #94a3b8; --text3: #64748b;
+  --border: #334155; --accent-bg: #1e3a5f;
+  --error-bg: #3b1515; --success-bg: #0f2d1a; --warning-bg: #3b2e0a;
+  --shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg); color:var(--text); line-height:1.6;
+}
+#app { display:flex; height:100vh; overflow:hidden; }
+/* Sidebar */
+#sidebar {
+  width:var(--sidebar-w); min-width:280px; background:var(--bg2);
+  border-right:1px solid var(--border); display:flex; flex-direction:column;
+}
+#sidebar-header { padding:16px; border-bottom:1px solid var(--border); }
+#search-input {
+  width:100%; padding:8px 12px; border:1px solid var(--border);
+  border-radius:6px; background:var(--bg); color:var(--text);
+  font-size:13px; outline:none;
+}
+#search-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+#env-bar { padding:8px 16px; display:flex; gap:8px; border-bottom:1px solid var(--border); }
+#env-select {
+  flex:1; padding:6px 8px; border:1px solid var(--border);
+  border-radius:4px; background:var(--bg); color:var(--text); font-size:12px;
+}
+#base-url-input {
+  flex:2; padding:6px 8px; border:1px solid var(--border);
+  border-radius:4px; background:var(--bg); color:var(--text); font-size:12px;
+}
+#tree-container { flex:1; overflow-y:auto; padding:8px 0; }
+.tree-group { border-bottom:1px solid var(--border); }
+.tree-group-header {
+  display:flex; align-items:center; padding:10px 16px;
+  cursor:pointer; font-size:13px; font-weight:600; gap:8px;
+  user-select:none; transition:background .15s;
+}
+.tree-group-header:hover { background:var(--bg3); }
+.tree-group-header .arrow { font-size:10px; transition:transform .2s; width:12px; }
+.tree-group-header .arrow.open { transform:rotate(90deg); }
+.tree-group-header .deprecated-tag {
+  font-size:10px; padding:1px 6px; border-radius:3px;
+  background:var(--warning-bg); color:var(--warning); font-weight:400;
+}
+.tree-items { display:none; }
+.tree-items.open { display:block; }
+.tree-item {
+  display:flex; align-items:center; padding:6px 16px 6px 32px;
+  cursor:pointer; font-size:12px; gap:8px; transition:background .15s;
+  border-left:3px solid transparent;
+}
+.tree-item:hover { background:var(--bg3); }
+.tree-item.active {
+  background:var(--accent-bg); border-left-color:var(--accent);
+}
+.tree-item .method-badge {
+  display:inline-block; min-width:42px; text-align:center;
+  padding:1px 6px; border-radius:3px; font-size:10px; font-weight:700; color:#fff;
+}
+.tree-item .path-text { font-family:var(--mono); font-size:11px; color:var(--text2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tree-item.deprecated .path-text { text-decoration:line-through; color:var(--text3); }
+/* Main area */
+#main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+#main-header {
+  padding:16px 24px; border-bottom:1px solid var(--border);
+  background:var(--bg2); display:flex; align-items:center; gap:12px; flex-shrink:0;
+}
+#main-header .method-badge-lg {
+  padding:4px 12px; border-radius:4px; font-size:13px; font-weight:700; color:#fff;
+}
+#main-header .path-display { font-family:var(--mono); font-size:15px; flex:1; }
+#send-btn {
+  padding:8px 24px; background:var(--accent); color:#fff; border:none;
+  border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; transition:background .15s;
+}
+#send-btn:hover { background:var(--accent-hover); }
+#send-btn:disabled { opacity:.5; cursor:not-allowed; }
+#detail-scroll { flex:1; overflow-y:auto; padding:24px; }
+.section { margin-bottom:24px; }
+.section-title {
+  font-size:13px; font-weight:600; color:var(--text2); text-transform:uppercase;
+  letter-spacing:.5px; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  cursor:pointer; user-select:none;
+}
+.section-title .arrow2 { font-size:10px; transition:transform .2s; }
+.section-title.collapsed .arrow2 { transform:rotate(-90deg); }
+.section-body { transition:max-height .3s; overflow:hidden; }
+.section-body.hidden { max-height:0 !important; }
+.editable-label { cursor:pointer; border-bottom:1px dashed transparent; transition:.15s; display:inline-block; min-width:2em; min-height:1em; }
+.editable-label:empty::before { content:'—'; color:var(--text3); font-style:italic; }
+.editable-label:hover { border-bottom-color:var(--accent); color:var(--accent); }
+.editable-label.editing { border-bottom-color:var(--accent); outline:none; }
+/* Tables */
+.param-table { width:100%; border-collapse:collapse; font-size:13px; }
+.param-table th {
+  text-align:left; padding:8px 12px; background:var(--bg2);
+  border-bottom:2px solid var(--border); font-size:11px; font-weight:600;
+  color:var(--text2); text-transform:uppercase;
+}
+.param-table td {
+  padding:8px 12px; border-bottom:1px solid var(--border);
+}
+.param-table input, .param-table select {
+  padding:4px 8px; border:1px solid var(--border); border-radius:4px;
+  background:var(--bg); color:var(--text); font-size:12px; width:100%;
+}
+.param-table input:focus, .param-table select:focus {
+  border-color:var(--accent); outline:none;
+}
+.required-badge { color:var(--error); font-size:11px; font-weight:600; }
+.constraint-item {
+  display:inline-block; font-size:10px; padding:1px 6px; border-radius:3px;
+  background:var(--accent-bg); color:var(--accent); margin-right:4px;
+}
+/* JSON editor */
+.json-editor {
+  width:100%; min-height:120px; padding:12px; border:1px solid var(--border);
+  border-radius:6px; background:var(--bg2); color:var(--text);
+  font-family:var(--mono); font-size:13px; line-height:1.5; resize:vertical;
+  tab-size:2;
+}
+.json-editor:focus { border-color:var(--accent); outline:none; }
+.schema-fill-btn {
+  font-size:11px; padding:4px 10px; background:var(--bg3); color:var(--accent);
+  border:1px solid var(--border); border-radius:4px; cursor:pointer; margin-bottom:8px;
+}
+/* Response */
+#response-area { margin-top:16px; }
+.response-meta { display:flex; gap:16px; align-items:center; font-size:13px; margin-bottom:8px; }
+.status-badge { padding:4px 12px; border-radius:4px; font-weight:700; font-size:13px; color:#fff; }
+.status-2xx { background:var(--success); }
+.status-4xx { background:var(--warning); }
+.status-5xx { background:var(--error); }
+.response-time { color:var(--text2); }
+.response-headers {
+  font-size:12px; background:var(--bg2); border-radius:6px; padding:12px;
+  margin-bottom:8px; max-height:200px; overflow-y:auto;
+}
+.response-body {
+  background:var(--bg2); border-radius:6px; padding:16px; overflow:auto;
+  font-family:var(--mono); font-size:13px; line-height:1.5; max-height:500px; white-space:pre-wrap; word-break:break-all;
+}
+/* Field Tree (recursive response fields) */
+.field-tree { font-size:13px; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.field-tree-header { display:flex; padding:8px 12px; background:var(--bg2); border-bottom:2px solid var(--border); font-size:11px; font-weight:600; color:var(--text2); text-transform:uppercase; }
+.field-col-name { width:150px; min-width:90px; flex-shrink:0; }
+.field-col-type { width:140px; min-width:90px; flex-shrink:0; }
+.field-col-desc { flex:1; min-width:80px; }
+.field-col-val { width:210px; min-width:170px; flex-shrink:0; }
+.field-row { display:flex; align-items:flex-start; padding:5px 12px; border-bottom:1px solid var(--border); font-size:12px; transition:background .1s; }
+.field-row:last-child { border-bottom:none; }
+.field-row:hover { background:var(--bg2); }
+.field-row.depth-0 { padding-left:12px; }
+.field-row.depth-1 { padding-left:32px; }
+.field-row.depth-2 { padding-left:52px; }
+.field-row.depth-3 { padding-left:72px; }
+.field-row.depth-4 { padding-left:92px; }
+.field-row.has-children { cursor:pointer; }
+.field-row.has-children > .field-col-name { font-weight:600; }
+.field-expand { display:inline-block; width:16px; font-size:10px; flex-shrink:0; transition:transform .2s; user-select:none; }
+.field-expand.open { transform:rotate(90deg); }
+.field-tag { display:inline-block; font-size:10px; padding:0px 5px; border-radius:3px; margin-left:4px; vertical-align:middle; }
+.field-tag.circular { background:var(--warning-bg); color:var(--warning); }
+.field-tag.truncated { background:var(--error-bg); color:var(--error); }
+.field-tag.poly { background:var(--accent-bg); color:var(--accent); }
+.field-col-desc .editable-label { font-size:12px; }
+/* Header table (browser-like) */
+.header-table { width:100%; border-collapse:collapse; font-size:12px; }
+.header-table td { padding:3px 8px; border-bottom:1px solid var(--border); vertical-align:top; }
+.header-table .header-key { font-weight:600; color:var(--accent); white-space:nowrap; width:1%; font-family:var(--mono); font-size:11px; }
+.header-table .header-val { word-break:break-all; font-family:var(--mono); font-size:11px; }
+.curl-box {
+  margin-top:8px; padding:12px; background:var(--bg3); border-radius:6px;
+  font-family:var(--mono); font-size:12px; position:relative;
+}
+.copy-btn {
+  position:absolute; top:8px; right:8px; padding:4px 10px; font-size:11px;
+  border:1px solid var(--border); border-radius:4px; cursor:pointer;
+  background:var(--bg); color:var(--text);
+}
+.error-box {
+  padding:12px 16px; background:var(--error-bg); color:var(--error);
+  border-radius:6px; font-size:13px; margin-top:8px;
+}
+/* History */
+#history-panel {
+  position:fixed; right:0; top:0; bottom:0; width:360px; background:var(--bg2);
+  border-left:1px solid var(--border); z-index:100; display:none;
+  flex-direction:column; box-shadow:-4px 0 16px rgba(0,0,0,.1);
+}
+#history-panel.show { display:flex; }
+/* Mode toggle */
+#mode-toggle {
+  padding:6px 12px; border:1px solid var(--border); border-radius:6px;
+  background:var(--bg); color:var(--text); font-size:12px; cursor:pointer;
+}
+/* Toast */
+.toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  padding:8px 20px; border-radius:6px; font-size:13px; z-index:200;
+  background:var(--bg3); color:var(--text); box-shadow:0 4px 12px rgba(0,0,0,.15);
+  animation:fadeIn .2s ease;
+}
+@keyframes fadeIn { from{opacity:0;transform:translateX(-50%) translateY(8px);} }
+/* Responsive */
+@media (max-width:768px) {
+  #sidebar { width:100%; min-width:unset; }
+  #main { display:none; }
+  #main.show { display:flex; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <input type="text" id="search-input" placeholder="搜索接口..." title="Ctrl+K 快速搜索">
+    </div>
+    <div id="env-bar">
+      <select id="env-select"></select>
+      <input type="text" id="base-url-input" placeholder="http://localhost:8080">
+    </div>
+    <div id="tree-container"></div>
+    <div style="padding:8px 16px;border-top:1px solid var(--border);display:flex;gap:8px;">
+      <button id="lang-toggle" onclick="toggleLang()" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:11px;cursor:pointer;font-weight:600;" title="Switch language">EN</button>
+        <button id="mode-toggle" onclick="toggleMode()">🌓</button>
+      <button id="history-btn" onclick="toggleHistory()" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:12px;cursor:pointer;">历史记录</button>
+    </div>
+    <div style="padding:4px 16px 8px;border-top:1px solid var(--border);">
+      <button id="save-edits-btn" onclick="saveWithEdits()" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--accent);font-size:11px;cursor:pointer;font-weight:600;">💾 导出文档(含说明)</button>
+    </div>
+  </div>
+  <!-- Main -->
+  <div id="main">
+    <div id="main-header">
+      <span class="method-badge-lg" id="detail-method"></span>
+      <span class="path-display" id="detail-path"></span>
+      <button id="send-btn" onclick="sendRequest()">发送请求</button>
+    </div>
+    <div id="detail-scroll"></div>
+  </div>
+</div>
+
+<!-- History Panel -->
+<div id="history-panel">
+  <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-weight:600;" id="history-title">请求历史</span>
+    <button onclick="toggleHistory()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;">✕</button>
+  </div>
+  <div id="history-list" style="flex:1;overflow-y:auto;"></div>
+</div>
+
+<script>
+// ===== DATA INJECTION =====
+var __DATA__ = {{{apiJson}}};
+
+// ===== STATE =====
+var state = {
+  data: __DATA__,
+  envs: loadJSON('posteasy_envs', [{name:'本地开发',url:'http://localhost:8080'},{name:'测试环境',url:''},{name:'生产环境',url:''}]),
+  currentEnv: load('posteasy_currentEnv', 0),
+  baseUrl: load('posteasy_baseUrl', ''),
+  activeApi: null,
+  activeCtrl: null,
+  darkMode: load('posteasy_darkMode', 'system'),
+  lang: load('posteasy_lang', 'zh'),
+  edits: loadJSON('posteasy_edits_' + hashKey(), {}),
+  paramValues: loadJSON('posteasy_params_' + hashKey(), {}),
+  history: loadJSON('posteasy_history_' + hashKey(), [])
+};
+
+function hashKey() { return 'p' + hashCode(__DATA__.projectName || 'default'); }
+function hashCode(s) { var h=0; for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;} return Math.abs(h).toString(36); }
+
+// ===== PERSISTENCE =====
+function load(k, def) { try { var v=localStorage.getItem(k); return v!==null ? v : def; } catch(e){return def;} }
+function save(k, v) { try { localStorage.setItem(k, v); } catch(e){} }
+function loadJSON(k, def) { try { var v=localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch(e){return def;} }
+function saveJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+function persist() {
+  save('posteasy_baseUrl', state.baseUrl);
+  save('posteasy_currentEnv', state.currentEnv);
+  saveJSON('posteasy_envs', state.envs);
+  saveJSON('posteasy_edits_' + hashKey(), state.edits);
+  saveJSON('posteasy_params_' + hashKey(), state.paramValues);
+  saveJSON('posteasy_history_' + hashKey(), state.history.slice(0,50));
+  save('posteasy_darkMode', state.darkMode);
+  save('posteasy_lang', state.lang);
+}
+
+// ===== DARK MODE =====
+function applyMode() {
+  var m = state.darkMode;
+  var dark = m === 'dark' || (m === 'system' && window.matchMedia('(prefers-color-scheme:dark)').matches);
+  document.documentElement.classList.toggle('dark', dark);
+}
+function toggleMode() {
+  var modes = ['light','dark','system'];
+  var idx = modes.indexOf(state.darkMode);
+  state.darkMode = modes[(idx+1)%3];
+  applyMode(); persist();
+  showToast('主题: ' + ({light:'浅色',dark:'深色',system:'跟随系统'})[state.darkMode]);
+}
+function toggleLang() {
+  state.lang = state.lang === 'zh' ? 'en' : 'zh';
+  persist();
+  var lbtn = document.getElementById('lang-toggle');
+  if (lbtn) lbtn.textContent = state.lang === 'zh' ? 'EN' : '中';
+  var hbtn = document.getElementById('history-btn');
+  if (hbtn) hbtn.textContent = _t('历史记录');
+  var sbtn = document.getElementById('send-btn');
+  if (sbtn) sbtn.textContent = _t('发送请求');
+  var sinp = document.getElementById('search-input');
+  if (sinp) sinp.placeholder = _t('搜索接口...');
+  var htitle = document.getElementById('history-title');
+  if (htitle) htitle.textContent = _t('请求历史');
+  var saveBtn = document.getElementById('save-edits-btn');
+  if (saveBtn) saveBtn.textContent = _t('💾 导出文档(含说明)');
+  // Update document title
+  if (state.data.projectName) {
+    document.title = state.data.projectName + ' - ' + _t('API 文档');
+  }
+  buildTree();
+  initEnvs();
+  if (state.activeCtrl !== null && state.activeApi !== null) {
+    selectApi(state.activeCtrl, state.activeApi, true);
+  }
+  showToast(state.lang === 'zh' ? '已切换为中文' : 'Switched to English');
+}
+applyMode();
+window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', applyMode);
+
+
+// ===== BUILD UI =====
+function buildTree() {
+  var container = document.getElementById('tree-container');
+  var html = '';
+  // Expand/collapse all buttons
+  html += '<div style="padding:4px 16px;display:flex;gap:8px;">';
+  html += '<button onclick="toggleAll(true)" style="font-size:11px;border:1px solid var(--border);border-radius:4px;padding:2px 8px;background:var(--bg);color:var(--text);cursor:pointer;">' + _t('全部展开') + '</button>';
+  html += '<button onclick="toggleAll(false)" style="font-size:11px;border:1px solid var(--border);border-radius:4px;padding:2px 8px;background:var(--bg);color:var(--text);cursor:pointer;">' + _t('全部折叠') + '</button>';
+  html += '</div>';
+
+  var controllers = state.data.controllers || [];
+  for (var i = 0; i < controllers.length; i++) {
+    var ctrl = controllers[i];
+    var cid = 'ctrl' + i;
+    var isFirst = (i === 0);
+    html += '<div class="tree-group">';
+    html += '<div class="tree-group-header" onclick="toggleGroup(\'' + cid + '\')">';
+    html += '<span class="arrow' + (isFirst ? ' open' : '') + '" id="arrow-' + cid + '">▶</span>';
+    html += '<span>' + escHtml(ctrl.displayName || ctrl.className) + '</span>';
+    if (ctrl.isDeprecated) html += '<span class="deprecated-tag">' + _t('已废弃') + '</span>';
+    if (ctrl.swaggerTags && ctrl.swaggerTags.length) html += '<span style="font-size:10px;color:var(--text3)">' + escHtml(ctrl.swaggerTags.join(',')) + '</span>';
+    html += '</div>';
+    html += '<div class="tree-items' + (isFirst ? ' open' : '') + '" id="items-' + cid + '">';
+    for (var j = 0; j < ctrl.methods.length; j++) {
+      var m = ctrl.methods[j];
+      var mid = 'm' + i + '_' + j;
+      var method = m.httpMethods[0] || 'GET';
+      var color = httpColor(method);
+      html += '<div class="tree-item' + (m.isDeprecated ? ' deprecated' : '') + '" id="' + mid + '" onclick="selectApi(' + i + ',' + j + ')">';
+      html += '<span class="method-badge" style="background:' + color + '">' + method + '</span>';
+      html += '<span class="path-text">' + escHtml(m.fullPath) + '</span>';
+      html += '</div>';
+    }
+    html += '</div></div>';
+  }
+
+  if (controllers.length === 0) {
+    html += '<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px;">' + _t('未找到接口') + '</div>';
+  }
+  container.innerHTML = html;
+
+  // Restore selection
+  if (state.activeCtrl !== null && state.activeApi !== null) {
+    selectApi(state.activeCtrl, state.activeApi, true);
+  }
+}
+
+function toggleGroup(cid) {
+  var items = document.getElementById('items-' + cid);
+  var arrow = document.getElementById('arrow-' + cid);
+  var open = items.classList.toggle('open');
+  if (arrow) arrow.classList.toggle('open', open);
+}
+
+function toggleAll(open) {
+  var items = document.querySelectorAll('.tree-items');
+  var arrows = document.querySelectorAll('.tree-group-header .arrow');
+  for (var i=0;i<items.length;i++) {
+    if (open) items[i].classList.add('open'); else items[i].classList.remove('open');
+  }
+  for (var j=0;j<arrows.length;j++) {
+    if (open) arrows[j].classList.add('open'); else arrows[j].classList.remove('open');
+  }
+}
+
+function selectApi(ctrlIdx, apiIdx, silent) {
+  state.activeCtrl = ctrlIdx;
+  state.activeApi = apiIdx;
+  var ctrl = state.data.controllers[ctrlIdx];
+  var api = ctrl.methods[apiIdx];
+
+  // Highlight tree item
+  document.querySelectorAll('.tree-item.active').forEach(function(el){el.classList.remove('active');});
+  var mid = 'm' + ctrlIdx + '_' + apiIdx;
+  var el = document.getElementById(mid);
+  if (el) el.classList.add('active');
+
+  renderDetail(ctrl, api);
+  if (!silent) persist();
+}
+
+function renderDetail(ctrl, api) {
+  var method = api.httpMethods[0] || 'GET';
+  var color = httpColor(method);
+  document.getElementById('detail-method').textContent = method;
+  document.getElementById('detail-method').style.background = color;
+  document.getElementById('detail-path').textContent = api.fullPath;
+
+  var html = '';
+  // Summary
+  html += '<div class="section">';
+  html += '<div class="section-title">' + _t('接口说明') + '</div>';
+  html += '<div class="section-body">';
+  html += '<p class="editable-label" contenteditable="true" data-edit="summary_' + state.activeCtrl + '_' + state.activeApi + '" onblur="onEdit(this)">' + escHtml(getEdit('summary_' + state.activeCtrl + '_' + state.activeApi, api.summary || api.description || _t('无说明'))) + '</p>';
+  if (api.isDeprecated) html += '<span style="color:var(--warning);font-size:12px;">⚠ ' + _t('已废弃') + '</span>';
+  if (api.responseStatus) html += '<span style="font-size:12px;color:var(--text2);margin-left:8px;">' + _t('默认状态码') + ': ' + api.responseStatus + '</span>';
+  if (api.consumes) html += '<span style="font-size:12px;color:var(--text2);margin-left:8px;">Consumes: ' + escHtml(api.consumes) + '</span>';
+  if (api.produces) html += '<span style="font-size:12px;color:var(--text2);margin-left:8px;">Produces: ' + escHtml(api.produces) + '</span>';
+  html += '</div></div>';
+
+  // Parameters
+  html += '<div class="section">';
+  html += '<div class="section-title" onclick="toggleSection(this)"><span class="arrow2">▼</span> ' + _t('请求参数') + ' (' + api.parameters.length + ')</div>';
+  html += '<div class="section-body">';
+  if (api.parameters.length > 0) {
+    html += '<table class="param-table"><thead><tr><th>' + _t('参数名') + '</th><th>' + _t('位置') + '</th><th>' + _t('类型') + '</th><th>' + _t('必填') + '</th><th>' + _t('说明') + '</th><th>' + _t('值') + '</th></tr></thead><tbody>';
+    for (var p = 0; p < api.parameters.length; p++) {
+      var param = api.parameters[p];
+      var paramKey = 'param_' + state.activeCtrl + '_' + state.activeApi + '_' + p;
+      var savedVal = state.paramValues[paramKey] !== undefined ? state.paramValues[paramKey] : '';
+
+      // Body params with children: skip the wrapper row, show field tree directly
+      if ((param.location === 'body' || param.location === 'query') && param.children && param.children.length) {
+        html += '<tr><td colspan="6" style="padding:0;">';
+        html += '<div style="padding:8px 12px;font-size:11px;color:var(--text2);background:var(--bg2);border-bottom:1px solid var(--border);">';
+        html += '<span style="font-weight:600;">' + (param.location === 'body' ? _t('Request Body') : _t('请求对象 (ModelAttribute)')) + '</span>';
+        html += ' <span style="font-family:var(--mono);">' + escHtml(param.javaType) + '</span>';
+        if (param.required) html += ' <span class="required-badge">●</span>';
+        html += '</div>';
+        html += '<div class="field-tree body-field-tree" data-body-ctrl="' + state.activeCtrl + '" data-body-api="' + state.activeApi + '">';
+        html += '<div class="field-tree-header" style="font-size:10px;">';
+        html += '<span class="field-col-name">' + _t('字段名') + '</span>';
+        html += '<span class="field-col-type">' + _t('类型') + '</span>';
+        html += '<span class="field-col-desc">' + _t('说明') + '</span>';
+        html += '<span class="field-col-val">' + _t('值') + '</span>';
+        html += '</div>';
+        for (var fc = 0; fc < param.children.length; fc++) {
+          html += renderBodyFieldRow(param.children[fc], 0, '' + fc, state.activeCtrl, state.activeApi);
+        }
+        html += '</div>';
+        html += '</td></tr>';
+        continue;
+      }
+
+      html += '<tr>';
+      html += '<td style="font-family:var(--mono);font-size:12px;">' + escHtml(param.name) + '</td>';
+      html += '<td><span style="font-size:11px;padding:1px 6px;border-radius:3px;background:var(--accent-bg);color:var(--accent);">' + param.location + '</span></td>';
+      html += '<td style="font-family:var(--mono);font-size:11px;">' + escHtml(param.javaType) + '</td>';
+      html += '<td>' + (param.required ? '<span class="required-badge">●</span>' : '') + '</td>';
+      html += '<td><span class="editable-label" contenteditable="true" data-edit="paramdesc_' + state.activeCtrl + '_' + state.activeApi + '_' + p + '" onblur="onEdit(this)">' + escHtml(getEdit('paramdesc_' + state.activeCtrl + '_' + state.activeApi + '_' + p, param.description)) + '</span>';
+      if (param.constraints && param.constraints.length) {
+        for (var c = 0; c < param.constraints.length; c++) {
+          html += '<span class="constraint-item" title="' + escHtml(param.constraints[c].message) + '">' + param.constraints[c].type + '</span>';
+        }
+      }
+      html += '</td>';
+      // Value input
+      html += '<td>';
+      if (param.isFile) {
+        html += '<input type="file" data-param="' + paramKey + '" onchange="onParamChange(this)" style="font-size:11px;">';
+      } else if (param.isEnum && param.enumValues.length) {
+        html += '<select data-param="' + paramKey + '" onchange="onParamChange(this)">';
+        html += '<option value="">--</option>';
+        for (var ev = 0; ev < param.enumValues.length; ev++) {
+          html += '<option value="' + escHtml(param.enumValues[ev]) + '"' + (savedVal === param.enumValues[ev] ? ' selected' : '') + '>' + param.enumValues[ev] + '</option>';
+        }
+        html += '</select>';
+      } else if (param.isDate) {
+        var pst = simpleType(param.javaType);
+        var pDateType = pst === 'LocalDate' ? 'date' : (pst === 'LocalTime' ? 'time' : 'datetime-local');
+        html += '<input type="' + pDateType + '" step="1" data-param="' + paramKey + '" value="' + escHtml(savedVal) + '" onchange="onParamChange(this)">';
+      } else {
+        html += '<input type="text" data-param="' + paramKey + '" value="' + escHtml(savedVal) + '" onchange="onParamChange(this)" placeholder="' + escHtml(param.exampleJson !== undefined ? JSON.stringify(param.exampleJson) : '') + '">';
+      }
+      html += '</td>';
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+  } else {
+    html += '<p style="color:var(--text3);font-size:13px;">' + _t('无参数') + '</p>';
+  }
+  html += '</div></div>';
+
+  // Request body — toggle between form fields and JSON editor
+  var bodyParams = api.parameters.filter(function(p){return p.location==='body';});
+  if (bodyParams.length > 0) {
+    var bodyKey = 'body_' + state.activeCtrl + '_' + state.activeApi;
+    html += '<div class="section">';
+    html += '<div class="section-title" style="justify-content:space-between;">';
+    html += '<span>' + _t('Request Body') + '</span>';
+    html += '<span style="font-weight:400;font-size:11px;">';
+    html += '<button id="body-view-form-btn" class="schema-fill-btn" style="margin-right:4px;" onclick="switchBodyView(\'form\',' + state.activeCtrl + ',' + state.activeApi + ')">' + _t('📋 表单') + '</button>';
+    html += '<button id="body-view-json-btn" class="schema-fill-btn" onclick="switchBodyView(\'json\',' + state.activeCtrl + ',' + state.activeApi + ')">' + _t('{ } JSON') + '</button>';
+    html += '</span></div>';
+    html += '<div class="section-body">';
+    // Form view (default)
+    html += '<div id="body-form-view">';
+    html += '<button class="schema-fill-btn" onclick="fillBodyExample(' + state.activeCtrl + ',' + state.activeApi + ')">' + _t('🪄 填入示例值') + '</button>';
+    html += '<span style="font-size:11px;color:var(--text3);margin-left:8px;">' + _t('List 类型请用英文逗号分隔，如: a,b,c') + '</span>';
+    html += '</div>';
+    // JSON view (hidden by default)
+    html += '<div id="body-json-view" style="display:none;">';
+    html += '<textarea class="json-editor" id="body-editor" data-param="' + bodyKey + '" onchange="onParamChange(this)" oninput="syncJsonToForm(' + state.activeCtrl + ',' + state.activeApi + ')" placeholder=\'{}\'>' + escHtml(state.paramValues[bodyKey] || '') + '</textarea>';
+    html += '<button class="schema-fill-btn" style="margin-top:4px;" onclick="fillBodyExample(' + state.activeCtrl + ',' + state.activeApi + ');syncFormToJson(' + state.activeCtrl + ',' + state.activeApi + ');">' + _t('🪄 填入示例值') + '</button>';
+    html += '</div>';
+    html += '</div></div>';
+  }
+
+  // Custom Headers
+  var hdrKey = 'customHeaders_' + state.activeCtrl + '_' + state.activeApi;
+  var savedHeaders = [];
+  try {
+    var raw = state.paramValues[hdrKey];
+    if (raw) savedHeaders = JSON.parse(raw);
+  } catch(e) { savedHeaders = []; }
+  html += '<div class="section">';
+  html += '<div class="section-title" onclick="toggleSection(this)"><span class="arrow2">▼</span> ' + _t('自定义请求头') + '</div>';
+  html += '<div class="section-body">';
+  html += '<table class="param-table" id="custom-headers-table"><thead><tr><th>' + _t('Header 名称') + '</th><th>' + _t('Header 值') + '</th><th style="width:40px;"></th></tr></thead><tbody>';
+  for (var hdrIdx = 0; hdrIdx < savedHeaders.length; hdrIdx++) {
+    html += '<tr class="custom-header-row">';
+    html += '<td><input type="text" class="header-key-input" value="' + escHtml(savedHeaders[hdrIdx].key) + '" onchange="saveCustomHeaders(' + state.activeCtrl + ',' + state.activeApi + ')" style="padding:4px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:12px;width:100%;"></td>';
+    html += '<td><input type="text" class="header-val-input" value="' + escHtml(savedHeaders[hdrIdx].val) + '" onchange="saveCustomHeaders(' + state.activeCtrl + ',' + state.activeApi + ')" style="padding:4px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:12px;width:100%;"></td>';
+    html += '<td><button onclick="deleteCustomHeader(' + state.activeCtrl + ',' + state.activeApi + ',' + hdrIdx + ')" style="background:none;border:none;color:var(--error);cursor:pointer;font-size:14px;" title="' + _t('删除') + '">✕</button></td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  html += '<button onclick="addCustomHeader(' + state.activeCtrl + ',' + state.activeApi + ')" style="margin-top:6px;font-size:11px;padding:4px 12px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--accent);cursor:pointer;">+ ' + _t('添加请求头') + '</button>';
+  html += '</div></div>';
+
+  // Response parameters
+  var respType = api.responseType;
+  html += '<div class="section">';
+  html += '<div class="section-title" onclick="toggleSection(this)"><span class="arrow2">▼</span> ' + _t('响应参数') + '</div>';
+  html += '<div class="section-body">';
+  if (respType.isVoid) {
+    html += '<p style="color:var(--text3);font-size:13px;">' + _t('无响应体 (void)') + '</p>';
+  } else if (respType.isFileDownload) {
+    html += '<p style="color:var(--text3);font-size:13px;">' + _t('文件下载响应') + '</p>';
+  } else {
+    html += '<p style="font-size:12px;color:var(--text2);margin-bottom:8px;">';
+    html += _t('原始类型') + ': <code>' + escHtml(respType.rawType) + '</code>';
+    if (respType.wrapperType) html += ' | ' + _t('包装') + ': <code>' + escHtml(respType.wrapperType) + '</code>';
+    if (respType.isReactive) html += ' | <span style="color:var(--accent)">Reactive</span>';
+    html += '</p>';
+    if (respType.fields.length > 0) {
+      // Check if any field has children (nested objects) — use tree view
+      var hasNested = respType.fields.some(function(f){ return f.children && f.children.length > 0; });
+      if (hasNested) {
+        html += '<div class="field-tree">';
+        html += '<div class="field-tree-header">';
+        html += '<span class="field-col-name">' + _t('字段名') + '</span>';
+        html += '<span class="field-col-type">' + _t('类型') + '</span>';
+        html += '<span class="field-col-desc">' + _t('说明') + '</span>';
+        html += '</div>';
+        for (var rf2 = 0; rf2 < respType.fields.length; rf2++) {
+          html += renderFieldRow(respType.fields[rf2], 0, 'respdesc_' + state.activeCtrl + '_' + state.activeApi + '_' + rf2);
+        }
+        html += '</div>';
+      } else {
+        html += '<table class="param-table"><thead><tr><th>' + _t('字段名') + '</th><th>' + _t('类型') + '</th><th>' + _t('说明') + '</th></tr></thead><tbody>';
+        for (var rf = 0; rf < respType.fields.length; rf++) {
+          var f = respType.fields[rf];
+          html += '<tr>';
+          html += '<td style="font-family:var(--mono);font-size:12px;">' + escHtml(f.name) + '</td>';
+          html += '<td style="font-family:var(--mono);font-size:11px;">' + escHtml(f.javaType) + (f.polymorphic ? ' <span style="color:var(--accent)">(' + _t('多态') + ')</span>' : '') + '</td>';
+          html += '<td><span class="editable-label" contenteditable="true" data-edit="respdesc_' + state.activeCtrl + '_' + state.activeApi + '_' + rf + '" onblur="onEdit(this)">' + escHtml(getEdit('respdesc_' + state.activeCtrl + '_' + state.activeApi + '_' + rf, f.description)) + '</span></td>';
+          html += '</tr>';
+        }
+        html += '</tbody></table>';
+      }
+    }
+  }
+  html += '</div></div>';
+
+  // Response area
+  html += '<div class="section">';
+  html += '<div class="section-title">' + _t('响应结果') + '</div>';
+  html += '<div id="response-area"><p style="color:var(--text3);font-size:13px;">' + _t('点击发送请求查看响应') + '</p></div>';
+  html += '</div>';
+
+  document.getElementById('detail-scroll').innerHTML = html;
+}
+
+// ===== EDITING =====
+function getEdit(key, defaultVal) {
+  return state.edits[key] !== undefined ? state.edits[key] : defaultVal;
+}
+function onEdit(el) {
+  var key = el.getAttribute('data-edit');
+  state.edits[key] = el.textContent;
+  persist();
+}
+function resetEdits(scope) {
+  if (scope === 'all') { state.edits = {}; }
+  else if (state.activeCtrl !== null && state.activeApi !== null) {
+    var prefix = state.activeCtrl + '_' + state.activeApi;
+    Object.keys(state.edits).forEach(function(k){ if (k.indexOf(prefix)>=0) delete state.edits[k]; });
+  }
+  persist();
+  if (state.activeCtrl !== null && state.activeApi !== null) {
+    var ctrl = state.data.controllers[state.activeCtrl];
+    renderDetail(ctrl, ctrl.methods[state.activeApi]);
+  }
+  showToast(_t('已重置'));
+}
+
+// Delegate focus/blur for contenteditable labels — adds visual feedback
+document.addEventListener('focusin', function(e) {
+  var el = e.target;
+  if (el.classList && el.classList.contains('editable-label')) {
+    el.classList.add('editing');
+  }
+});
+document.addEventListener('focusout', function(e) {
+  var el = e.target;
+  if (el.classList && el.classList.contains('editable-label')) {
+    el.classList.remove('editing');
+    onEdit(el);
+  }
+});
+// Also save on input (real-time) so edits are kept even without blur
+document.addEventListener('input', function(e) {
+  var el = e.target;
+  if (el.classList && el.classList.contains('editable-label')) {
+    onEdit(el);
+  }
+});
+
+// ===== ENVIRONMENTS =====
+function initEnvs() {
+  // Migrate envs: ensure nameEn exists for all envs
+  var defaultNameEns = {'本地开发':'Local Dev','测试环境':'Test','生产环境':'Production'};
+  var needsSave = false;
+  for (var i = 0; i < state.envs.length; i++) {
+    if (!state.envs[i].nameEn) {
+      state.envs[i].nameEn = defaultNameEns[state.envs[i].name] || state.envs[i].name;
+      needsSave = true;
+    }
+  }
+  if (needsSave) persist();
+
+  var sel = document.getElementById('env-select');
+  sel.innerHTML = '';
+  for (var i=0;i<state.envs.length;i++) {
+    var opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = state.lang === 'zh' ? state.envs[i].name : state.envs[i].nameEn;
+    if (i == state.currentEnv) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  // Custom option
+  var opt2 = document.createElement('option');
+  opt2.value = 'custom';
+  opt2.textContent = _t('+ 自定义');
+  sel.appendChild(opt2);
+
+  sel.onchange = function() {
+    if (this.value === 'custom') {
+      var name = prompt(_t('环境名称:'));
+      if (name) {
+        state.envs.push({name:name, nameEn:name, url:''});
+        state.currentEnv = state.envs.length - 1;
+        initEnvs();
+        persist();
+      }
+      return;
+    }
+    state.currentEnv = parseInt(this.value);
+    document.getElementById('base-url-input').value = state.envs[state.currentEnv].url;
+    persist();
+  };
+
+  document.getElementById('base-url-input').value = state.envs[state.currentEnv] ? state.envs[state.currentEnv].url : '';
+  document.getElementById('base-url-input').onchange = function() {
+    var idx = state.currentEnv;
+    if (state.envs[idx]) { state.envs[idx].url = this.value; }
+    state.baseUrl = this.value;
+    persist();
+  };
+
+  // Config hint
+  if (state.data.configHints && state.data.configHints.contextPath) {
+    showToast(_t('检测到 context-path: ') + state.data.configHints.contextPath);
+  }
+}
+
+// ===== PARAMS =====
+function onParamChange(el) {
+  var key = el.getAttribute('data-param');
+  if (el.type === 'file') {
+    state.paramValues[key] = el.files[0];
+  } else {
+    state.paramValues[key] = el.value;
+  }
+  persist();
+}
+
+// ===== SEND REQUEST =====
+function sendRequest() {
+  if (state.activeCtrl === null || state.activeApi === null) return;
+  var api = state.data.controllers[state.activeCtrl].methods[state.activeApi];
+  var baseUrl = document.getElementById('base-url-input').value.replace(/\/+$/, '');
+  if (!baseUrl) { showToast(_t('请先填写 Base URL')); return; }
+
+  var path = api.fullPath;
+  // Replace path variables
+  var queryParams = [];
+  var headers = {};
+  var body = null;
+
+  // Build parameters
+  for (var i=0;i<api.parameters.length;i++) {
+    var param = api.parameters[i];
+    var key = 'param_' + state.activeCtrl + '_' + state.activeApi + '_' + i;
+    var val = state.paramValues[key];
+    if (val === undefined || val === '') {
+      if (param.required) { showToast(_t('请填写必填参数: ') + param.name); return; }
+      continue;
+    }
+
+    if (param.location === 'path') {
+      path = path.replace('{' + param.name + '}', encodeURIComponent(val));
+    } else if (param.location === 'query') {
+      // Skip complex query params (unannotated objects with children) — handled below
+      if (param.children && param.children.length > 0) continue;
+      queryParams.push(encodeURIComponent(param.name) + '=' + encodeURIComponent(val));
+    } else if (param.location === 'header') {
+      headers[param.name] = val;
+    }
+  }
+
+  // Build URL
+  var url = baseUrl + path;
+  if (queryParams.length > 0) url += '?' + queryParams.join('&');
+
+  
+  // Complex query params (unannotated objects) — flatten to URL/form-encoded
+  var hasComplexQuery = api.parameters.some(function(p){
+      return p.location === 'query' && p.children && p.children.length > 0;
+  });
+  if (hasComplexQuery) {
+      var complexObj = buildBodyObject(state.activeCtrl, state.activeApi, 'query');
+      if (complexObj) {
+          var flatParams = flattenObject(complexObj);
+          var isWriteMethod = (api.httpMethods[0] === 'POST' || api.httpMethods[0] === 'PUT' || api.httpMethods[0] === 'PATCH');
+          if (isWriteMethod) {
+              // Send as application/x-www-form-urlencoded body
+              var formBody = [];
+              for (var fk in flatParams) {
+                  formBody.push(encodeURIComponent(fk) + '=' + encodeURIComponent(flatParams[fk]));
+              }
+              body = formBody.join('&');
+              headers['Content-Type'] = 'application/x-www-form-urlencoded';
+          } else {
+              // GET/DELETE — append to URL query string
+              for (var fk2 in flatParams) {
+                  queryParams.push(encodeURIComponent(fk2) + '=' + encodeURIComponent(flatParams[fk2]));
+              }
+              url = baseUrl + path;
+              if (queryParams.length > 0) url += '?' + queryParams.join('&');
+          }
+      }
+  }
+  // Body — JSON view takes priority, otherwise build from inline field inputs
+
+  var hasBody = api.parameters.some(function(p){return p.location==='body';});
+  if (hasBody) {
+    var jsonView = document.getElementById('body-json-view');
+    var isJsonView = jsonView && jsonView.style.display !== 'none';
+    if (isJsonView) {
+      var editor = document.getElementById('body-editor');
+      if (editor && editor.value.trim()) {
+        try {
+          body = JSON.parse(editor.value);
+          headers['Content-Type'] = 'application/json';
+        } catch(e) {
+          showToast(_t('JSON 格式错误: ') + e.message);
+          return;
+        }
+      }
+    } else {
+      body = buildBodyObject(state.activeCtrl, state.activeApi);
+      if (body) {
+        headers['Content-Type'] = 'application/json';
+      }
+    }
+  }
+
+  // File upload
+  var hasFile = api.parameters.some(function(p){return p.isFile;});
+  if (hasFile) {
+    var formData = new FormData();
+    for (var fi=0;fi<api.parameters.length;fi++) {
+      var fparam = api.parameters[fi];
+      var fkey = 'param_' + state.activeCtrl + '_' + state.activeApi + '_' + fi;
+      var fval = state.paramValues[fkey];
+      if (fval instanceof File) { formData.append(fparam.name, fval); }
+      else if (fval) { formData.append(fparam.name, fval); }
+    }
+    body = formData;
+    delete headers['Content-Type']; // Let browser set it
+  }
+
+  // Read custom headers from the header editor rows
+  var headerRows = document.querySelectorAll('.custom-header-row');
+  for (var hi = 0; hi < headerRows.length; hi++) {
+    var keyEl = headerRows[hi].querySelector('.header-key-input');
+    var valEl = headerRows[hi].querySelector('.header-val-input');
+    if (keyEl && valEl && keyEl.value.trim()) {
+      headers[keyEl.value.trim()] = valEl.value;
+    }
+  }
+
+  // Default browser-like headers (if not already set by params)
+  if (!headers['Accept']) headers['Accept'] = 'application/json, text/plain, */*';
+  if (!headers['Accept-Language']) headers['Accept-Language'] = 'zh-CN,zh;q=0.9,en;q=0.8';
+
+  // Disable button
+  var btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  btn.textContent = _t('发送中...');
+
+  var startTime = Date.now();
+
+  // Safety: GET, HEAD, DELETE should never have a body
+  var method = api.httpMethods[0] || 'GET';
+  if (body != null && (method === 'GET' || method === 'HEAD' || method === 'DELETE')) {
+    if (typeof body === 'string' && body.length > 0) {
+      // Move body content to query params rather than silently dropping
+      url += (url.indexOf('?') >= 0 ? '&' : '?') + body;
+    }
+    body = null;
+  }
+  fetch(url, {
+    method: method,
+    headers: headers,
+    body: body instanceof FormData ? body : (body != null ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined)
+  })
+  .then(function(resp) {
+    var elapsed = Date.now() - startTime;
+    var respHeaders = {};
+    resp.headers.forEach(function(v,k){ respHeaders[k] = v; });
+    return resp.text().then(function(text) {
+      return { status: resp.status, statusText: resp.statusText, headers: respHeaders, body: text, elapsed: elapsed, ok: resp.ok };
+    });
+  })
+  .then(function(result) {
+    renderResponse(result, api, url, headers, body);
+    addHistory(result, api, url, headers, body);
+  })
+  .catch(function(err) {
+    var errMsg = escHtml(err.message);
+    var isNetworkErr = err.message.indexOf('Failed to fetch') >= 0 || err.message.indexOf('NetworkError') >= 0;
+    var tips = '';
+    if (isNetworkErr) {
+      tips = '<br><br><strong>' + _t('可能原因：') + '</strong>';
+      tips += '<br>1. ' + _t('服务器未启动或 URL 地址错误 — 请检查 Base URL 和接口路径');
+      tips += '<br>2. ' + _t('跨域 (CORS) 限制 — 浏览器阻止了跨域请求');
+      tips += '<br><br><strong>' + _t('排查步骤：') + '</strong>';
+      tips += '<br>• ' + _t('先在浏览器中直接访问以下地址，确认服务可达：');
+      tips += '<br>  <code style="font-size:12px;word-break:break-all;">' + escHtml(url) + '</code>';
+      tips += '<br>• ' + _t('如果浏览器能访问但此处报错，则是 CORS 问题，请在后端添加：');
+      tips += '<br>  <code style="font-size:11px;">@CrossOrigin(origins = "*")</code>';
+      tips += '<br>• ' + _t('如果浏览器也无法访问，请检查服务器是否启动、URL 是否正确');
+    }
+    document.getElementById('response-area').innerHTML = '<div class="error-box">' + errMsg + tips + '</div>';
+  })
+  .finally(function() {
+    btn.disabled = false;
+    btn.textContent = _t('发送请求');
+  });
+}
+
+function renderResponse(result, api, url, reqHeaders, reqBody) {
+  var statusClass = result.ok ? 'status-2xx' : (result.status < 500 ? 'status-4xx' : 'status-5xx');
+  var bodySize = new Blob([result.body]).size;
+  var sizeStr = bodySize < 1024 ? bodySize + ' B' : bodySize < 1048576 ? (bodySize / 1024).toFixed(1) + ' KB' : (bodySize / 1048576).toFixed(2) + ' MB';
+  var html = '';
+  // Status bar
+  html += '<div class="response-meta">';
+  html += '<span class="status-badge ' + statusClass + '">' + result.status + ' ' + result.statusText + '</span>';
+  html += '<span class="response-time">⏱ ' + result.elapsed + 'ms</span>';
+  html += '<span class="response-time">📦 ' + sizeStr + '</span>';
+  html += '</div>';
+
+  // ===== Request details (browser-like) =====
+  html += '<details style="margin-bottom:8px;" open><summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--text);padding:4px 0;">📤 ' + _t('请求') + '</summary>';
+  html += '<div style="font-size:12px;margin-bottom:6px;"><strong>URL:</strong> <span style="font-family:var(--mono);word-break:break-all;">' + escHtml(url) + '</span></div>';
+  html += '<div style="font-size:12px;margin-bottom:6px;"><strong>Method:</strong> <span style="font-family:var(--mono);">' + (api.httpMethods[0]||'GET') + '</span></div>';
+  html += '<div style="margin-bottom:4px;font-size:11px;font-weight:600;color:var(--text2);">' + _t('请求头') + '</div>';
+  html += renderHeaderTable(reqHeaders);
+  if (reqBody) {
+    html += '<div style="margin-top:6px;font-size:11px;font-weight:600;color:var(--text2);">' + _t('请求体') + '</div>';
+    html += '<div class="response-body" style="max-height:200px;">' + escHtml(typeof reqBody === 'string' ? reqBody : JSON.stringify(reqBody, null, 2)) + '</div>';
+  }
+  html += '</details>';
+
+  // ===== Response headers (browser-like) =====
+  html += '<details style="margin-bottom:8px;" open><summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--text);padding:4px 0;">📥 ' + _t('响应头') + '</summary>';
+  html += renderHeaderTable(result.headers);
+  html += '</details>';
+
+  // ===== Response body =====
+  html += '<details style="margin-bottom:8px;" open><summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--text);padding:4px 0;">📄 ' + _t('响应体') + '</summary>';
+  var bodyStr = result.body;
+  var isJson = false;
+  try { var parsed = JSON.parse(bodyStr); bodyStr = JSON.stringify(parsed, null, 2); isJson = true; } catch(e){}
+  html += '<div class="response-body">' + escHtml(bodyStr) + '</div>';
+  html += '</details>';
+
+  // curl
+  var curl = buildCurl(api, url, reqHeaders, reqBody);
+  html += '<div class="curl-box"><button class="copy-btn" onclick="copyText(this,\'' + escAttr(escapeQuotes(curl)) + '\')">' + _t('复制') + '</button><code style="white-space:pre-wrap;word-break:break-all;font-size:11px;">' + escHtml(curl) + '</code></div>';
+
+  // Download button for JSON
+  if (isJson) {
+    html += '<div style="margin-top:8px;"><button onclick="downloadResponse()" style="font-size:11px;padding:4px 12px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--accent);cursor:pointer;">' + _t('下载为 .json') + '</button></div>';
+    window._lastResponseBody = bodyStr;
+  }
+
+  document.getElementById('response-area').innerHTML = html;
+}
+
+function buildCurl(api, url, reqHeaders, reqBody) {
+  var parts = ['curl'];
+  parts.push('-X ' + (api.httpMethods[0] || 'GET'));
+  var headerKeys = Object.keys(reqHeaders);
+  for (var i=0;i<headerKeys.length;i++) {
+    parts.push("-H '" + headerKeys[i] + ": " + reqHeaders[headerKeys[i]] + "'");
+  }
+  if (reqBody) {
+    var bodyStr = typeof reqBody === 'string' ? reqBody : JSON.stringify(reqBody);
+    parts.push("-d '" + bodyStr.replace(/'/g, "\\'") + "'");
+  }
+  parts.push("'" + url + "'");
+  return parts.join(' ');
+}
+
+function downloadResponse() {
+  if (!window._lastResponseBody) return;
+  var blob = new Blob([window._lastResponseBody], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'response.json';
+  a.click();
+}
+
+// ===== HISTORY =====
+function addHistory(result, api, url, reqHeaders, reqBody) {
+  // Snapshot current param values for this API
+  var paramSnapshot = {};
+  var ctrlKey = state.activeCtrl + '_' + state.activeApi;
+  var keys = Object.keys(state.paramValues);
+  for (var k = 0; k < keys.length; k++) {
+    if (keys[k].indexOf('param_' + ctrlKey) === 0 || keys[k].indexOf('bodyfield_' + ctrlKey) === 0 || keys[k].indexOf('body_' + ctrlKey) === 0 || keys[k].indexOf('customHeaders_' + ctrlKey) === 0) {
+      paramSnapshot[keys[k]] = state.paramValues[keys[k]];
+    }
+  }
+  state.history.unshift({
+    time: new Date().toISOString(),
+    method: api.httpMethods[0],
+    path: api.fullPath,
+    ctrlIdx: state.activeCtrl,
+    apiIdx: state.activeApi,
+    url: url,
+    baseUrl: state.baseUrl,
+    status: result.status,
+    elapsed: result.elapsed,
+    ok: result.ok,
+    params: paramSnapshot,
+    reqHeaders: reqHeaders,
+    reqBody: reqBody
+  });
+  state.history = state.history.slice(0, 50);
+  persist();
+}
+
+function toggleHistory() {
+  var panel = document.getElementById('history-panel');
+  var show = panel.classList.toggle('show');
+  if (show) renderHistory();
+}
+
+function renderHistory() {
+  var container = document.getElementById('history-list');
+  if (state.history.length === 0) {
+    container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">' + _t('无历史记录') + '</div>';
+    return;
+  }
+  var html = '';
+  for (var i=0;i<state.history.length;i++) {
+    var h = state.history[i];
+    var sc = h.ok ? 'status-2xx' : (h.status < 500 ? 'status-4xx' : 'status-5xx');
+    html += '<div style="padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;" onclick="restoreHistory(' + i + ')">';
+    html += '<span class="status-badge ' + sc + '" style="font-size:10px;padding:2px 8px;">' + h.status + '</span> ';
+    html += '<span class="method-badge" style="background:' + httpColor(h.method) + ';font-size:10px;min-width:36px;">' + h.method + '</span> ';
+    html += '<span style="font-family:var(--mono);">' + escHtml(h.path) + '</span>';
+    html += '<span style="color:var(--text3);margin-left:8px;">' + h.elapsed + 'ms</span>';
+    html += '<span style="color:var(--text3);float:right;">' + new Date(h.time).toLocaleTimeString() + '</span>';
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function restoreHistory(idx) {
+  var h = state.history[idx];
+  // Find matching API
+  var found = false;
+  var controllers = state.data.controllers;
+
+  // First try by ctrlIdx/apiIdx if available
+  if (h.ctrlIdx !== undefined && h.apiIdx !== undefined &&
+      controllers[h.ctrlIdx] && controllers[h.ctrlIdx].methods[h.apiIdx] &&
+      controllers[h.ctrlIdx].methods[h.apiIdx].fullPath === h.path &&
+      controllers[h.ctrlIdx].methods[h.apiIdx].httpMethods[0] === h.method) {
+    // Restore saved parameters
+    if (h.params) {
+      var keys = Object.keys(h.params);
+      for (var k = 0; k < keys.length; k++) {
+        state.paramValues[keys[k]] = h.params[keys[k]];
+      }
+    }
+    // Restore baseUrl
+    if (h.baseUrl) state.baseUrl = h.baseUrl;
+    selectApi(h.ctrlIdx, h.apiIdx);
+    found = true;
+  } else {
+    // Fallback: search by path and method
+    for (var i=0;i<controllers.length;i++) {
+      for (var j=0;j<controllers[i].methods.length;j++) {
+        if (controllers[i].methods[j].fullPath === h.path && controllers[i].methods[j].httpMethods[0] === h.method) {
+          // Restore saved parameters
+          if (h.params) {
+            var pkeys = Object.keys(h.params);
+            for (var pk = 0; pk < pkeys.length; pk++) {
+              state.paramValues[pkeys[pk]] = h.params[pkeys[pk]];
+            }
+          }
+          if (h.baseUrl) state.baseUrl = h.baseUrl;
+          selectApi(i, j);
+          found = true;
+          break;
+        }
+      }
+      if (found) break;
+    }
+  }
+
+  // Restore UI fields
+  if (found) {
+    if (h.baseUrl) {
+      var baseInput = document.getElementById('base-url-input');
+      if (baseInput) baseInput.value = h.baseUrl;
+    }
+    persist();
+  } else {
+    showToast(_t('接口已变更，无法定位'));
+  }
+  toggleHistory();
+}
+
+// ===== SEARCH =====
+document.getElementById('search-input').addEventListener('input', function() {
+  var q = this.value.toLowerCase();
+  var items = document.querySelectorAll('.tree-item');
+  var groups = document.querySelectorAll('.tree-group');
+  var anyVisible = false;
+
+  for (var i=0;i<items.length;i++) {
+    var text = items[i].textContent.toLowerCase();
+    var show = !q || text.indexOf(q) >= 0;
+    items[i].style.display = show ? 'flex' : 'none';
+    if (show) anyVisible = true;
+  }
+
+  // Show/hide groups
+  for (var g=0;g<groups.length;g++) {
+    var hasVisible = false;
+    var groupItems = groups[g].querySelectorAll('.tree-item');
+    for (var gi=0;gi<groupItems.length;gi++) {
+      if (groupItems[gi].style.display !== 'none') { hasVisible = true; break; }
+    }
+    groups[g].style.display = hasVisible || !q ? '' : 'none';
+    // Auto-expand groups with matches
+    if (hasVisible && q) {
+      var itemsDiv = groups[g].querySelector('.tree-items');
+      var arrow = groups[g].querySelector('.arrow');
+      if (itemsDiv) itemsDiv.classList.add('open');
+      if (arrow) arrow.classList.add('open');
+    }
+  }
+
+  if (!anyVisible && q) {
+    // Show "no results" — handled by CSS
+  }
+});
+
+// Ctrl+K shortcut
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('search-input').focus();
+  }
+});
+
+
+// ===== I18N =====
+var I18N = {
+  '搜索接口...':'Search APIs...',
+
+  '历史记录':'History',
+  '全部展开':'Expand All',
+  '全部折叠':'Collapse All',
+  '已废弃':'Deprecated',
+  '未找到接口':'No APIs found',
+  '接口说明':'Description',
+  '无说明':'No description',
+  '请求参数':'Parameters',
+  '请求对象 (ModelAttribute)':'ModelAttribute',
+  '参数名':'Name',
+  '位置':'Location',
+  '类型':'Type',
+  '必填':'Required',
+  '说明':'Description',
+  '值':'Value',
+  '无参数':'None',
+  '字段名':'Field',
+  '响应参数':'Response',
+  '响应结果':'Response',
+  '无响应体 (void)':'void',
+  '文件下载响应':'File download',
+  '发送请求':'Send',
+  '发送中...':'Sending...',
+  '请先填写 Base URL':'Please fill in Base URL',
+  '请填写必填参数: ':'Required parameter: ',
+  'JSON 格式错误: ':'JSON format error: ',
+  '已填入示例值':'Example values filled',
+  '已重置':'Reset',
+  '接口已变更，无法定位':'API changed, cannot locate',
+  '可能原因：':'Possible causes:',
+  '服务器未启动或 URL 地址错误 — 请检查 Base URL 和接口路径':'Server not running or wrong URL — check Base URL and API path',
+  '跨域 (CORS) 限制 — 浏览器阻止了跨域请求':'CORS policy — browser blocked the cross-origin request',
+  '排查步骤：':'Troubleshooting:',
+  '先在浏览器中直接访问以下地址，确认服务可达：':'First, open this URL directly in a browser to verify:',
+  '如果浏览器能访问但此处报错，则是 CORS 问题，请在后端添加：':'If the browser can reach it but this fails, it is a CORS issue. Add to backend:',
+  '如果浏览器也无法访问，请检查服务器是否启动、URL 是否正确':'If the browser also cannot reach it, check if the server is running and the URL is correct',
+  '请求':'Request',
+  '请求头':'Request Headers',
+  '请求体':'Request Body',
+  '响应头':'Response Headers',
+  '响应体':'Response Body',
+  '复制':'Copy',
+  '已复制!':'Copied!',
+  '请求历史':'Request History',
+  '无历史记录':'No history',
+  '📋 表单':'\u{1F4CB} Form',
+  '{ } JSON':'{ } JSON',
+  '🪄 填入示例值':'\u{1FA84} Fill Example',
+  'List 类型请用英文逗号分隔，如: a,b,c':'Separate List items with commas, e.g.: a,b,c',
+  '下载为 .json':'Download as .json',
+  '原始类型':'Raw type',
+  '包装':'Wrapper',
+  '多态':'polymorphic',
+  '截断':'truncated',
+  '循环引用':'circular ref',
+  '默认状态码':'Default status',
+  'Consumes':'Consumes',
+  'Produces':'Produces',
+  '多态类型':'polymorphic type',
+  'API 文档':'API Documentation',
+  '文档概览':'Document Overview',
+  '项目':'Project',
+  'Controller 数量':'Controllers',
+  '接口总数':'Total APIs',
+  '文件名':'Filename',
+  '导出 HTML 文档':'Export HTML',
+  '正在生成...':'Generating...',
+  '文档导出成功！':'Export successful!',
+  '可直接用浏览器打开该 HTML 文件，无需任何本地服务':'Open this HTML file directly in a browser, no local server needed',
+  '返回首页':'Back to Home',
+  '← 返回':'\u2190 Back',
+  '导出失败':'Export failed',
+  '已解析':'Parsed',
+  '个 Controller，共':'controllers,',
+  '个接口。':'APIs.',
+  '⚠️ 模板文件未找到，请确保 templates/api-doc.hbs 存在。':'\u26A0\uFE0F Template file not found. Ensure templates/api-doc.hbs exists.',
+  ' (未选择)':' (none)',
+  '无':'None',
+  '主题:':'Theme:',
+  '浅色':'Light',
+  '深色':'Dark',
+  '跟随系统':'System',
+  '本地开发':'Local Dev',
+  '测试环境':'Test',
+  '生产环境':'Production',
+  '+ 自定义':'+ Custom',
+  '环境名称:':'Environment name:',
+  '检测到 context-path: ':'Detected context-path: ',
+  '逗号分隔, 如: a,b,c':'comma-separated, e.g.: a,b,c',
+  '多个值请用英文逗号分隔':'Separate multiple values with commas',
+  '点击发送请求查看响应':'Click Send to see the response',
+  'Request Body':'Request Body',
+  '循环引用':'Circular ref',
+  '超过最大深度，已截断':'Max depth exceeded, truncated',
+  '自定义请求头':'Custom Headers',
+  'Header 名称':'Header Name',
+  'Header 值':'Header Value',
+  '添加请求头':'Add Header',
+  '删除':'Delete',
+  '已导出含说明的文档':'Document with descriptions exported',
+  '已加载内嵌说明':'Embedded descriptions loaded',
+  '💾 导出文档(含说明)':'\u{1F4BE} Export (with desc)'
+};
+
+function _t(s) {
+  if (state.lang === 'en' && I18N[s]) return I18N[s];
+  return s;
+}
+
+// ===== HELPERS =====
+function escHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function escapeQuotes(s) { return String(s).replace(/'/g,"\\'"); }
+function simpleType(javaType) { return (javaType||'').split('.').pop().replace(/\[\]$/,''); }
+function isSimpleDateType(t) { return t==='Date'||t==='LocalDate'||t==='LocalDateTime'||t==='LocalTime'||t==='ZonedDateTime'||t==='Instant'||t==='Timestamp'; }
+function isDateTimeType(t) { return t==='Date'||t==='LocalDateTime'||t==='ZonedDateTime'||t==='Instant'||t==='Timestamp'; }
+function isSimpleNumberType(t) { return t==='Integer'||t==='int'||t==='Long'||t==='long'||t==='Double'||t==='double'||t==='Float'||t==='float'||t==='BigDecimal'; }
+function httpColor(method) {
+  var colors = {GET:'#22c55e',POST:'#3b82f6',PUT:'#f97316',DELETE:'#ef4444',PATCH:'#a855f7',HEAD:'#6b7280',OPTIONS:'#6b7280',ALL:'#6b7280'};
+  return colors[method] || '#6b7280';
+}
+// Flatten nested object to dot-notation keys for form-encoded/query params
+function flattenObject(obj, prefix) {
+  var result = {};
+  prefix = prefix || '';
+  for (var key in obj) {
+    if (!obj.hasOwnProperty(key)) continue;
+    var val = obj[key];
+    var fullKey = prefix ? (prefix + '.' + key) : key;
+    if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
+      var nested = flattenObject(val, fullKey);
+      for (var nk in nested) {
+        if (nested.hasOwnProperty(nk)) result[nk] = nested[nk];
+      }
+    } else {
+      result[fullKey] = val;
+    }
+  }
+  return result;
+}
+
+function formatJson(obj) { try { return JSON.stringify(obj, null, 2); } catch(e){ return String(obj); } }
+function toggleSection(titleEl) {
+  titleEl.classList.toggle('collapsed');
+  var body = titleEl.nextElementSibling;
+  if (body) body.classList.toggle('hidden');
+}
+
+// ===== RECURSIVE FIELD TREE RENDERING =====
+var _fieldRowId = 0;
+function renderFieldRow(field, depth, editKey) {
+  _fieldRowId++;
+  var rid = 'frow' + _fieldRowId;
+  var hasKids = field.children && field.children.length > 0;
+  var html = '';
+  html += '<div class="field-row depth-' + depth + (hasKids ? ' has-children' : '') + '"' + (hasKids ? ' onclick="toggleFieldKids(\'' + rid + '\')"' : '') + '>';
+  // Name with expand arrow
+  html += '<span class="field-col-name" style="font-family:var(--mono);">';
+  if (hasKids) {
+    html += '<span class="field-expand" id="' + rid + '-arrow">▶</span>';
+  } else {
+    html += '<span class="field-expand" style="visibility:hidden;">▶</span>';
+  }
+  html += escHtml(field.name);
+  // Tags
+  if (field.circularRef) html += '<span class="field-tag circular" title="' + _t('循环引用') + ': ' + escHtml(field.circularRef) + '">↻' + escHtml(field.circularRef) + '</span>';
+  if (field.truncated) html += '<span class="field-tag truncated" title="' + _t('超过最大深度，已截断') + '">' + _t('截断') + '</span>';
+  if (field.polymorphic) html += '<span class="field-tag poly" title="' + _t('多态类型') + '">' + _t('多态') + '</span>';
+  html += '</span>';
+  // Type
+  html += '<span class="field-col-type" style="font-family:var(--mono);font-size:11px;color:var(--text2);">' + escHtml(field.javaType) + '</span>';
+  // Description (editable)
+  html += '<span class="field-col-desc">';
+  html += '<span class="editable-label" contenteditable="true" data-edit="' + editKey + '" onblur="onEdit(this)" onclick="event.stopPropagation();">' + escHtml(getEdit(editKey, field.description || '')) + '</span>';
+  html += '</span>';
+  html += '</div>';
+  // Children container
+  if (hasKids) {
+    html += '<div id="' + rid + '-kids" style="display:none;">';
+    for (var k = 0; k < field.children.length; k++) {
+      html += renderFieldRow(field.children[k], depth + 1, editKey + '_c' + k);
+    }
+    html += '</div>';
+  }
+  return html;
+}
+
+function toggleFieldKids(rid) {
+  var kids = document.getElementById(rid + '-kids');
+  var arrow = document.getElementById(rid + '-arrow');
+  if (kids) {
+    var show = kids.style.display === 'none';
+    kids.style.display = show ? 'block' : 'none';
+    if (arrow) {
+      if (show) arrow.classList.add('open');
+      else arrow.classList.remove('open');
+    }
+  }
+}
+
+// ===== BODY FIELD ROW WITH INLINE INPUT =====
+function renderBodyFieldRow(field, depth, pathIdx, ctrlIdx, apiIdx) {
+  _fieldRowId++;
+  var rid = 'bfrow' + _fieldRowId;
+  var hasKids = field.children && field.children.length > 0;
+  var bodyPath = pathIdx; // e.g. "0" or "0_2_1" for nested
+  var inputId = 'bfinput_' + ctrlIdx + '_' + apiIdx + '_' + bodyPath;
+  // Restore saved value
+  var paramKey = 'bodyfield_' + ctrlIdx + '_' + apiIdx + '_' + bodyPath;
+  var savedVal = state.paramValues[paramKey] !== undefined ? state.paramValues[paramKey] : '';
+  // Determine input type
+  var st = simpleType(field.javaType);
+  var inputType = 'text';
+  var isList = st.indexOf('List') >= 0 || st.indexOf('Set') >= 0 || st.indexOf('Collection') >= 0 || field.javaType.indexOf('[]') >= 0;
+  var isNumber = isSimpleNumberType(st);
+  var isBool = st === 'Boolean' || st === 'boolean';
+  var isDate = isSimpleDateType(st);
+  var isDateTime = isDateTimeType(st);
+  if (isNumber) inputType = 'number';
+
+  var html = '';
+  html += '<div class="field-row depth-' + depth + (hasKids ? ' has-children' : '') + '"' + (hasKids ? ' onclick="toggleFieldKids(\'' + rid + '\')"' : '') + '>';
+  // Name with expand arrow
+  html += '<span class="field-col-name" style="font-family:var(--mono);">';
+  if (hasKids) {
+    html += '<span class="field-expand" id="' + rid + '-arrow">▶</span>';
+  } else {
+    html += '<span class="field-expand" style="visibility:hidden;">▶</span>';
+  }
+  html += escHtml(field.name);
+  if (field.circularRef) html += '<span class="field-tag circular" title="' + _t('循环引用') + '">↻' + escHtml(field.circularRef) + '</span>';
+  if (field.truncated) html += '<span class="field-tag truncated">' + _t('截断') + '</span>';
+  html += '</span>';
+  // Type
+  html += '<span class="field-col-type" style="font-family:var(--mono);font-size:11px;color:var(--text2);">' + escHtml(field.javaType) + '</span>';
+  // Description — editable like other param/response descriptions
+  html += '<span class="field-col-desc">';
+  html += '<span class="editable-label" contenteditable="true" data-edit="bodydesc_' + ctrlIdx + '_' + apiIdx + '_' + bodyPath + '" style="font-size:11px;">' + escHtml(getEdit('bodydesc_' + ctrlIdx + '_' + apiIdx + '_' + bodyPath, field.description || '')) + '</span>';
+  html += '</span>';
+  // Value input
+  html += '<span class="field-col-val" onclick="event.stopPropagation();">';
+  if (!hasKids) {
+    if (isBool) {
+      html += '<select data-bodypath="' + bodyPath + '" data-ctrl="' + ctrlIdx + '" data-api="' + apiIdx + '" onchange="onBodyFieldChange(this)" style="font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text);width:80px;">';
+      html += '<option value="">--</option>';
+      html += '<option value="true"' + (savedVal === 'true' ? ' selected' : '') + '>true</option>';
+      html += '<option value="false"' + (savedVal === 'false' ? ' selected' : '') + '>false</option>';
+      html += '</select>';
+    } else if (isDateTime) {
+      html += '<input type="datetime-local" step="1" data-bodypath="' + bodyPath + '" data-ctrl="' + ctrlIdx + '" data-api="' + apiIdx + '" value="' + escHtml(savedVal) + '" onchange="onBodyFieldChange(this)" oninput="onBodyFieldChange(this)" style="font-size:11px;padding:2px 6px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text);width:100%;min-width:180px;">';
+    } else if (isDate) {
+      // LocalDate → date, LocalTime → time
+      var dateType = st === 'LocalDate' ? 'date' : 'time';
+      html += '<input type="' + dateType + '" step="1" data-bodypath="' + bodyPath + '" data-ctrl="' + ctrlIdx + '" data-api="' + apiIdx + '" value="' + escHtml(savedVal) + '" onchange="onBodyFieldChange(this)" oninput="onBodyFieldChange(this)" style="font-size:11px;padding:2px 6px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text);width:100%;min-width:110px;">';
+    } else {
+      var ph = isNumber ? '0' : (isList ? _t('逗号分隔, 如: a,b,c') : '');
+      html += '<input type="' + inputType + '" data-bodypath="' + bodyPath + '" data-ctrl="' + ctrlIdx + '" data-api="' + apiIdx + '" data-islist="' + (isList ? '1' : '0') + '" value="' + escHtml(savedVal) + '" onchange="onBodyFieldChange(this)" oninput="onBodyFieldChange(this)" placeholder="' + ph + '" title="' + (isList ? _t('多个值请用英文逗号分隔') : '') + '" style="font-size:11px;padding:2px 6px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text);width:100%;min-width:80px;">';
+    }
+  }
+  html += '</span>';
+  html += '</div>';
+  // Children
+  if (hasKids) {
+    html += '<div id="' + rid + '-kids" style="display:none;">';
+    for (var k = 0; k < field.children.length; k++) {
+      html += renderBodyFieldRow(field.children[k], depth + 1, bodyPath + '_' + k, ctrlIdx, apiIdx);
+    }
+    html += '</div>';
+  }
+  return html;
+}
+
+function onBodyFieldChange(el) {
+  var ctrlIdx = el.getAttribute('data-ctrl');
+  var apiIdx = el.getAttribute('data-api');
+  var bodyPath = el.getAttribute('data-bodypath');
+  var key = 'bodyfield_' + ctrlIdx + '_' + apiIdx + '_' + bodyPath;
+  state.paramValues[key] = el.value;
+  persist();
+}
+
+// Build a nested JSON object from the inline field inputs
+function buildBodyFromFields(ctrlIdx, apiIdx) {
+  var result = {};
+  var prefix = 'bodyfield_' + ctrlIdx + '_' + apiIdx + '_';
+  var keys = Object.keys(state.paramValues);
+  // Sort by path depth to process parents before children
+  var relevant = [];
+  for (var i = 0; i < keys.length; i++) {
+    if (keys[i].indexOf(prefix) === 0) {
+      relevant.push({key: keys[i], path: keys[i].substring(prefix.length)});
+    }
+  }
+  if (relevant.length === 0) return null;
+
+  // Group by top-level index
+  var topValues = {};
+  for (var j = 0; j < relevant.length; j++) {
+    var r = relevant[j];
+    var val = state.paramValues[r.key];
+    if (val === undefined || val === '') continue;
+    var pathParts = r.path.split('_');
+    // pathParts[0] is the top-level field index
+    var firstIdx = pathParts[0];
+    var restPath = pathParts.slice(1).join('_');
+    if (!topValues[firstIdx]) topValues[firstIdx] = {};
+    if (restPath) {
+      setNestedByPath(topValues[firstIdx], restPath, val);
+    }
+  }
+
+  return result;
+}
+
+// Actually, let me use a simpler approach: walk the DOM
+function buildBodyFromDOM(ctrlIdx, apiIdx) {
+  var tree = document.querySelector('.body-field-tree[data-body-ctrl="' + ctrlIdx + '"][data-body-api="' + apiIdx + '"]');
+  if (!tree) return null;
+  var inputs = tree.querySelectorAll('[data-bodypath]');
+  if (inputs.length === 0) return null;
+
+  var result = {};
+  for (var i = 0; i < inputs.length; i++) {
+    var inp = inputs[i];
+    var val = inp.value;
+    if (val === '' || val === undefined) continue;
+    var path = inp.getAttribute('data-bodypath');
+    // Convert type if needed
+    if (inp.type === 'number') {
+      val = val.indexOf('.') >= 0 ? parseFloat(val) : parseInt(val, 10);
+    } else if (inp.tagName === 'SELECT') {
+      if (val === 'true') val = true;
+      else if (val === 'false') val = false;
+    }
+    setNestedByPath(result, path, val);
+  }
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+// Set a nested value by path like "0_2_1" (indices into children arrays)
+// Need to resolve indices to actual field names and types
+function buildBodyObject(ctrlIdx, apiIdx, locationFilter) {
+  var ctrl = state.data.controllers[ctrlIdx];
+  var api = ctrl.methods[apiIdx];
+  if (!locationFilter) locationFilter = 'body';
+  var complexParams = api.parameters.filter(function(p){return p.location===locationFilter && p.children && p.children.length > 0;});
+  if (complexParams.length === 0) return null;
+
+  // Walk the field tree and collect values
+  function walkFields(fields, pathPrefix) {
+    var obj = {};
+    var hasValue = false;
+    for (var i = 0; i < fields.length; i++) {
+      var f = fields[i];
+      var childPath = pathPrefix !== '' ? (pathPrefix + '_' + i) : ('' + i);
+      var paramKey = 'bodyfield_' + ctrlIdx + '_' + apiIdx + '_' + childPath;
+      if (f.children && f.children.length > 0) {
+        var childObj = walkFields(f.children, childPath);
+        if (childObj) {
+          obj[f.name] = childObj;
+          hasValue = true;
+        }
+      } else {
+        var val = state.paramValues[paramKey];
+        if (val !== undefined && val !== '') {
+          // Check if this field is a List/Set/Collection (comma-separated)
+          var isListType = f.javaType.indexOf('List<') >= 0 || f.javaType.indexOf('Set<') >= 0 || f.javaType.indexOf('Collection<') >= 0 || f.javaType.indexOf('[]') >= 0;
+          if (isListType && val.indexOf(',') >= 0) {
+            var parts = val.split(',');
+            var arr = [];
+            for (var li = 0; li < parts.length; li++) {
+              var item = parts[li].trim();
+              if (item === '') continue;
+              // Type coercion for list items
+              var innerType = f.javaType.replace(/^(?:List|Set|Collection)<(.+)>$/, '$1').replace(/\[\]$/, '');
+              var innerSt = simpleType(innerType);
+              if (isSimpleNumberType(innerSt)) {
+                item = innerSt.indexOf('Double')>=0||innerSt.indexOf('Float')>=0||innerSt==='BigDecimal' ? parseFloat(item) : parseInt(item, 10);
+              } else if (innerSt === 'Boolean' || innerSt === 'boolean') {
+                item = item === 'true';
+              }
+              arr.push(item);
+            }
+            val = arr;
+          } else if (isListType && val.indexOf(',') < 0) {
+            // Single value in a List field → wrap in array
+            val = [val];
+            // Type coercion for single item
+            var sit = simpleType(f.javaType.replace(/^(?:List|Set|Collection)<(.+)>$/, '$1').replace(/\[\]$/, ''));
+            if (isSimpleNumberType(sit)) {
+              val = [sit.indexOf('Double')>=0||sit.indexOf('Float')>=0||sit==='BigDecimal' ? parseFloat(val[0]) : parseInt(val[0], 10)];
+            } else if (sit === 'Boolean' || sit === 'boolean') {
+              val = [val[0] === 'true'];
+            }
+          } else {
+            // Type coercion for scalar values
+            var sf = simpleType(f.javaType);
+            if (isSimpleNumberType(sf)) {
+              val = sf.indexOf('Double')>=0||sf.indexOf('Float')>=0||sf==='BigDecimal' ? parseFloat(val) : parseInt(val, 10);
+            } else if (sf === 'Boolean' || sf === 'boolean') {
+              val = val === 'true';
+            }
+          }
+          obj[f.name] = val;
+          hasValue = true;
+        }
+      }
+    }
+    return hasValue ? obj : null;
+  }
+
+  // For each body parameter, walk its children
+  var bodyObj = {};
+  var bpIdx = 0;
+  for (var bp = 0; bp < api.parameters.length; bp++) {
+    if (api.parameters[bp].location !== locationFilter) continue;
+    var children = api.parameters[bp].children;
+    if (children && children.length > 0) {
+      var obj = walkFields(children, '');
+      if (obj) {
+        // Return the object directly without wrapping in param name
+        return obj;
+      }
+    }
+    bpIdx++;
+  }
+  return Object.keys(bodyObj).length > 0 ? bodyObj : null;
+}
+
+function fillBodyExample(ctrlIdx, apiIdx) {
+  var ctrl = state.data.controllers[ctrlIdx];
+  var api = ctrl.methods[apiIdx];
+
+  function walkAndFill(fields, pathPrefix) {
+    for (var i = 0; i < fields.length; i++) {
+      var f = fields[i];
+      var childPath = pathPrefix !== '' ? (pathPrefix + '_' + i) : ('' + i);
+      var paramKey = 'bodyfield_' + ctrlIdx + '_' + apiIdx + '_' + childPath;
+      if (f.children && f.children.length > 0) {
+        walkAndFill(f.children, childPath);
+      } else {
+        // Generate example value
+        var exVal = generateFieldExample(f);
+        state.paramValues[paramKey] = exVal;
+        // Update DOM
+        var el = document.querySelector('[data-bodypath="' + childPath + '"][data-ctrl="' + ctrlIdx + '"][data-api="' + apiIdx + '"]');
+        if (el) { el.value = exVal; }
+      }
+    }
+  }
+
+  var bpIdx = 0;
+  for (var bp = 0; bp < api.parameters.length; bp++) {
+    if (api.parameters[bp].location !== 'body') continue;
+    if (api.parameters[bp].children && api.parameters[bp].children.length > 0) {
+      walkAndFill(api.parameters[bp].children, '');
+    }
+    bpIdx++;
+  }
+  persist();
+  showToast(_t('已填入示例值'));
+}
+
+function generateFieldExample(field) {
+  var t = simpleType(field.javaType);
+  if (t === 'String') return 'string';
+  if (t === 'LocalDate') return '2025-01-01';
+  if (t === 'LocalTime') return '00:00:00';
+  if (isDateTimeType(t)) return '2025-01-01T00:00:00';
+  if (isSimpleNumberType(t)) return '0';
+  if (t === 'Boolean' || t === 'boolean') return 'false';
+  return '';
+}
+
+// ===== BODY VIEW SWITCHING (form / JSON) =====
+function switchBodyView(view, ctrlIdx, apiIdx) {
+  var formView = document.getElementById('body-form-view');
+  var jsonView = document.getElementById('body-json-view');
+  var formBtn = document.getElementById('body-view-form-btn');
+  var jsonBtn = document.getElementById('body-view-json-btn');
+  if (!formView || !jsonView) return;
+
+  if (view === 'json') {
+    // Switch to JSON: serialize current form values to JSON
+    syncFormToJson(ctrlIdx, apiIdx);
+    formView.style.display = 'none';
+    jsonView.style.display = 'block';
+    if (formBtn) { formBtn.style.background = 'var(--bg3)'; formBtn.style.color = 'var(--text)'; }
+    if (jsonBtn) { jsonBtn.style.background = 'var(--accent)'; jsonBtn.style.color = '#fff'; }
+  } else {
+    // Switch to form: parse JSON and fill form fields
+    syncJsonToForm(ctrlIdx, apiIdx);
+    jsonView.style.display = 'none';
+    formView.style.display = 'block';
+    if (formBtn) { formBtn.style.background = 'var(--accent)'; formBtn.style.color = '#fff'; }
+    if (jsonBtn) { jsonBtn.style.background = 'var(--bg3)'; jsonBtn.style.color = 'var(--text)'; }
+  }
+}
+
+// Sync form field values → JSON textarea
+function syncFormToJson(ctrlIdx, apiIdx) {
+  var body = buildBodyObject(ctrlIdx, apiIdx);
+  var editor = document.getElementById('body-editor');
+  if (editor && body) {
+    editor.value = JSON.stringify(body, null, 2);
+  } else if (editor && !body) {
+    editor.value = '';
+  }
+}
+
+// Sync JSON textarea → form field values
+function syncJsonToForm(ctrlIdx, apiIdx) {
+  var editor = document.getElementById('body-editor');
+  if (!editor || !editor.value.trim()) return;
+  try {
+    var obj = JSON.parse(editor.value);
+    var ctrl = state.data.controllers[ctrlIdx];
+    var api = ctrl.methods[apiIdx];
+    var bodyParams = api.parameters.filter(function(p){return p.location==='body';});
+    if (bodyParams.length === 0) return;
+
+    function fillFromJson(fields, jsonObj, pathPrefix) {
+      if (!jsonObj || typeof jsonObj !== 'object') return;
+      for (var i = 0; i < fields.length; i++) {
+        var f = fields[i];
+        var childPath = pathPrefix !== '' ? (pathPrefix + '_' + i) : ('' + i);
+        var paramKey = 'bodyfield_' + ctrlIdx + '_' + apiIdx + '_' + childPath;
+        var val = jsonObj[f.name];
+        if (f.children && f.children.length > 0 && val && typeof val === 'object' && !Array.isArray(val)) {
+          fillFromJson(f.children, val, childPath);
+        } else if (val !== undefined && val !== null) {
+          var strVal = Array.isArray(val) ? val.join(',') : (typeof val === 'object' ? JSON.stringify(val) : String(val));
+          state.paramValues[paramKey] = strVal;
+          var el = document.querySelector('[data-bodypath="' + childPath + '"][data-ctrl="' + ctrlIdx + '"][data-api="' + apiIdx + '"]');
+          if (el) el.value = strVal;
+        }
+      }
+    }
+
+    var bpIdx = 0;
+    for (var bp = 0; bp < api.parameters.length; bp++) {
+      if (api.parameters[bp].location !== 'body') continue;
+      if (api.parameters[bp].children && api.parameters[bp].children.length > 0) {
+        fillFromJson(api.parameters[bp].children, obj, '');
+      }
+      bpIdx++;
+    }
+    persist();
+  } catch(e) {
+    // Invalid JSON — ignore, user is still typing
+  }
+}
+
+// ===== HEADER TABLE RENDERING =====
+function renderHeaderTable(headers, filterFn) {
+  var entries = [];
+  var keys = Object.keys(headers);
+  for (var i = 0; i < keys.length; i++) {
+    if (!filterFn || filterFn(keys[i])) {
+      entries.push({key: keys[i], value: headers[keys[i]]});
+    }
+  }
+  entries.sort(function(a,b){ return a.key.toLowerCase().localeCompare(b.key.toLowerCase()); });
+  var html = '<table class="header-table">';
+  for (var j = 0; j < entries.length; j++) {
+    html += '<tr><td class="header-key">' + escHtml(entries[j].key) + '</td><td class="header-val">' + escHtml(entries[j].value) + '</td></tr>';
+  }
+  html += '</table>';
+  return html;
+}
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = _t('已复制!');
+    setTimeout(function(){ btn.textContent = _t('复制'); }, 1500);
+  });
+}
+
+function showToast(msg) {
+  var existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  var el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 2500);
+}
+
+// ===== CUSTOM HEADERS =====
+function addCustomHeader(ctrlIdx, apiIdx) {
+  var hdrKey = 'customHeaders_' + ctrlIdx + '_' + apiIdx;
+  var headers = [];
+  try { var raw = state.paramValues[hdrKey]; if (raw) headers = JSON.parse(raw); } catch(e) {}
+  headers.push({key: '', val: ''});
+  state.paramValues[hdrKey] = JSON.stringify(headers);
+  persist();
+  // Re-render detail
+  selectApi(ctrlIdx, apiIdx, true);
+}
+
+function deleteCustomHeader(ctrlIdx, apiIdx, index) {
+  var hdrKey = 'customHeaders_' + ctrlIdx + '_' + apiIdx;
+  var headers = [];
+  try { var raw = state.paramValues[hdrKey]; if (raw) headers = JSON.parse(raw); } catch(e) {}
+  headers.splice(index, 1);
+  state.paramValues[hdrKey] = JSON.stringify(headers);
+  persist();
+  selectApi(ctrlIdx, apiIdx, true);
+}
+
+function saveCustomHeaders(ctrlIdx, apiIdx) {
+  var rows = document.querySelectorAll('.custom-header-row');
+  var headers = [];
+  for (var i = 0; i < rows.length; i++) {
+    var keyEl = rows[i].querySelector('.header-key-input');
+    var valEl = rows[i].querySelector('.header-val-input');
+    if (keyEl && valEl) {
+      headers.push({key: keyEl.value, val: valEl.value});
+    }
+  }
+  var hdrKey = 'customHeaders_' + ctrlIdx + '_' + apiIdx;
+  state.paramValues[hdrKey] = JSON.stringify(headers);
+  persist();
+}
+
+// ===== SAVE WITH EDITS (export self-contained HTML) =====
+function saveWithEdits() {
+  try {
+    var editsJson = JSON.stringify(state.edits);
+    // Escape closing script tags in JSON data for safe HTML embedding
+    var safeEditsJson = editsJson.replace(/<\//g, '<\\/');
+
+    // Use the pristine HTML captured at init time (before DOM modifications).
+    // This is much more reliable than re-serializing the current DOM which
+    // may have been mutated by user interactions, request history, etc.
+    var docHtml = window.__POSTEASY_PRISTINE_HTML__ || document.documentElement.outerHTML;
+
+    // Build the embedded edits script — injected before </head>
+    // The JSON data is safe because all </ sequences have been escaped to <\/
+    // NOTE: use string concat to avoid literal closing script tag in this script block
+    var scriptOpen = '\n<script>window.__EMBEDDED_EDITS__ = ' + safeEditsJson + ';';
+    var scriptClose = '<' + '/script>';
+    var injection = scriptOpen + scriptClose;
+    // Also store in a <meta> tag as a robust fallback
+    // Escape for HTML attribute: & must come first to avoid double-escaping
+    var metaContent = safeEditsJson.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    var metaTag = '\n<meta name="posteasy-edits" content="' + metaContent + '">';
+
+    var html = '<!DOCTYPE html>\n' + docHtml;
+    // Insert the injection right before </head> so it takes effect before the main init
+    var headEndIdx = html.indexOf('</head>');
+    if (headEndIdx > 0) {
+      html = html.substring(0, headEndIdx) + metaTag + injection + '\n' + html.substring(headEndIdx);
+    } else {
+      // Fallback: insert before </body>
+      var bodyEndIdx = html.lastIndexOf('</body>');
+      if (bodyEndIdx > 0) {
+        html = html.substring(0, bodyEndIdx) + metaTag + injection + '\n' + html.substring(bodyEndIdx);
+      }
+    }
+
+    var blob = new Blob([html], {type: 'text/html;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (state.data.projectName || 'API') + '-API文档(含说明).html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
+    showToast(_t('已导出含说明的文档'));
+  } catch(e) {
+    showToast('导出失败: ' + e.message);
+  }
+}
+
+// ===== INIT =====
+// Load embedded edits (from a previously saved doc)
+// Try inline script variable first, fallback to <meta> tag
+var __embeddedEdits = window.__EMBEDDED_EDITS__;
+if (!__embeddedEdits) {
+  var metaEdits = document.querySelector('meta[name="posteasy-edits"]');
+  if (metaEdits) {
+    try {
+      var metaContent = metaEdits.getAttribute('content');
+      if (metaContent) {
+        // Decode HTML entities from the meta content attribute
+        var txt = document.createElement('textarea');
+        txt.innerHTML = metaContent;
+        __embeddedEdits = JSON.parse(txt.value);
+      }
+    } catch(e) { /* ignore meta parse errors */ }
+  }
+}
+if (__embeddedEdits) {
+  var embedded = __embeddedEdits;
+  var ekeys = Object.keys(embedded);
+  var loaded = 0;
+  for (var ei = 0; ei < ekeys.length; ei++) {
+    if (!(ekeys[ei] in state.edits)) {
+      state.edits[ekeys[ei]] = embedded[ekeys[ei]];
+      loaded++;
+    }
+  }
+  if (loaded > 0) {
+    persist();
+    showToast(_t('已加载内嵌说明') + ' (' + loaded + ')');
+  }
+}
+
+// Set up language toggle and static texts
+var langBtn = document.getElementById('lang-toggle');
+if (langBtn) langBtn.textContent = state.lang === 'zh' ? 'EN' : '中';
+var historyBtn2 = document.getElementById('history-btn');
+if (historyBtn2) historyBtn2.textContent = _t('历史记录');
+var sendBtn = document.getElementById('send-btn');
+if (sendBtn) sendBtn.textContent = _t('发送请求');
+var htitle = document.getElementById('history-title');
+if (htitle) htitle.textContent = _t('请求历史');
+var searchInput2 = document.getElementById('search-input');
+if (searchInput2) searchInput2.placeholder = _t('搜索接口...');
+var saveEditsBtn = document.getElementById('save-edits-btn');
+if (saveEditsBtn) saveEditsBtn.textContent = _t('💾 导出文档(含说明)');
+// Set document title
+if (state.data.projectName) {
+  document.title = state.data.projectName + ' - ' + _t('API 文档');
+}
+
+// Capture pristine HTML before any DOM modifications by buildTree/selectApi.
+// This is used by saveWithEdits() to produce a clean export without
+// the artifacts of user interactions (modified fields, response data, etc.).
+if (!window.__POSTEASY_PRISTINE_HTML__) {
+  window.__POSTEASY_PRISTINE_HTML__ = document.documentElement.outerHTML;
+}
+
+buildTree();
+initEnvs();
+
+// Select first API by default
+if (state.data.controllers.length > 0 && state.data.controllers[0].methods.length > 0) {
+  selectApi(0, 0, true);
+}
+</script>
+</body>
+</html>
