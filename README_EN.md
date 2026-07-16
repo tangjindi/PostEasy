@@ -23,6 +23,18 @@
 
 ---
 
+## 📸 Screenshots
+
+| Homepage | Scan Page |
+|----------|-----------|
+| ![Homepage](resources/images/首页EN.jpg) | ![Scan Page](resources/images/扫描页EN.jpg) |
+
+| Export Page | HTML API Documentation |
+|-------------|------------------------|
+| ![Export Page](resources/images/导出页EN.jpg) | ![HTML API Documentation](resources/images/html接口文档EN.jpg) |
+
+---
+
 ## Features
 
 ### Desktop App (Electron)
