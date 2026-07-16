@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useProjectStore } from '@/stores/projectStore'
 import { useI18n } from '@/i18n/I18nContext'
 import FolderPicker from '@/components/FolderPicker'
@@ -11,16 +11,13 @@ interface HomePageProps {
 export default function HomePage({ onStartScan }: HomePageProps): JSX.Element {
   const {
     rootPath,
-    subPath,
     recentProjects,
     setRootPath,
-    setSubPath,
     loadRecent,
     addRecent
   } = useProjectStore()
 
   const { t, lang } = useI18n()
-  const [validated, setValidated] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     loadRecent()
@@ -70,24 +67,6 @@ export default function HomePage({ onStartScan }: HomePageProps): JSX.Element {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            {t('接口路径（可选）')}
-          </label>
-          <input
-            type="text"
-            value={subPath}
-            onChange={e => setSubPath(e.target.value)}
-            placeholder={t('如 src/main/java/com/example/controller')}
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600
-              bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-              text-sm"
-          />
-          <p className="mt-1 text-xs text-gray-400">
-            {t('留空则从项目根目录开始扫描，支持多模块项目自动识别')}
-          </p>
-        </div>
       </div>
 
       {/* Start scan button */}

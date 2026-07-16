@@ -16,7 +16,7 @@ interface ScanState {
   errors: ParseError[]
   htmlContent: string | null
 
-  startScan: (rootPath: string, subPath?: string, excludeDirs?: string[]) => Promise<void>
+  startScan: (rootPath: string, excludeDirs?: string[]) => Promise<void>
   setScanning: (v: boolean) => void
   generateHtml: (api: ParsedAPI, lang?: string) => Promise<string>
   reset: () => void
@@ -31,7 +31,7 @@ export const useScanStore = create<ScanState>((set, get) => ({
   errors: [],
   htmlContent: null,
 
-  startScan: async (rootPath: string, subPath?: string, excludeDirs?: string[]) => {
+  startScan: async (rootPath: string, excludeDirs?: string[]) => {
     const api = window.posteasy
     if (!api) return
 
@@ -39,7 +39,7 @@ export const useScanStore = create<ScanState>((set, get) => ({
 
     try {
       // Step 1: Scan
-      const scanResult = await api.scanFiles({ rootPath, subPath, excludeDirs })
+      const scanResult = await api.scanFiles({ rootPath, excludeDirs })
       const { controllerFiles, javaFiles, configHints } = scanResult
 
       if (controllerFiles.length === 0) {

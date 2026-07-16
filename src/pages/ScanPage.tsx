@@ -13,7 +13,6 @@ interface ScanPageProps {
 
 export default function ScanPage({ onGoExport, onGoHome }: ScanPageProps): JSX.Element {
   const rootPath = useProjectStore(s => s.rootPath)
-  const subPath = useProjectStore(s => s.subPath)
   const projectName = useProjectStore(s => s.projectName)
 
   const scanning = useScanStore(s => s.scanning)
@@ -27,7 +26,7 @@ export default function ScanPage({ onGoExport, onGoHome }: ScanPageProps): JSX.E
 
   useEffect(() => {
     if (rootPath && !scanning) {
-      startScan(rootPath, subPath || undefined)
+      startScan(rootPath)
     }
   }, [rootPath])
 

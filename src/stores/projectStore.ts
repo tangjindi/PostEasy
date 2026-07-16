@@ -8,12 +8,10 @@ export interface RecentProject {
 
 interface ProjectState {
   rootPath: string | null
-  subPath: string
   recentProjects: RecentProject[]
   projectName: string
 
   setRootPath: (path: string) => void
-  setSubPath: (path: string) => void
   addRecent: (project: RecentProject) => void
   loadRecent: () => Promise<void>
   setProjectName: (name: string) => void
@@ -21,7 +19,6 @@ interface ProjectState {
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
   rootPath: null,
-  subPath: '',
   recentProjects: [],
   projectName: '',
 
@@ -32,8 +29,6 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const name = parts[parts.length - 1] || path
     set({ projectName: name })
   },
-
-  setSubPath: (path: string) => set({ subPath: path }),
 
   addRecent: (project: RecentProject) => {
     const current = get().recentProjects

@@ -93,7 +93,7 @@
 
 ### 多模块项目
 
-PostEasy 会自动检测 Maven/Gradle 多模块结构，扫描所有子模块的 `src/main/java` 目录。如果只想扫描特定路径，可在"接口路径"输入框中指定子路径（如 `src/main/java/com/example/controller`）。
+PostEasy 会自动检测 Maven/Gradle 多模块结构，扫描所有子模块的 `src/main/java` 目录。为确保完整解析所有 DTO 类和参数类型，请选择项目根目录（包含 `pom.xml` 或 `build.gradle` 的目录）。
 
 ---
 

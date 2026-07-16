@@ -7,7 +7,6 @@
 
 export interface ScanOptions {
   rootPath: string
-  subPath?: string
   excludeDirs?: string[]
 }
 

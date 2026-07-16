@@ -87,7 +87,7 @@ Download the installer for your platform from [GitHub Releases](https://github.c
 
 ### Multi-Module Projects
 
-PostEasy automatically detects Maven/Gradle multi-module structures and scans all `src/main/java` directories. To scan only a specific path, enter a sub-path in the "API Path" input field.
+PostEasy automatically detects Maven/Gradle multi-module structures and scans all `src/main/java` directories. To ensure complete resolution of all DTO classes and parameter types, select the project root directory (the directory containing `pom.xml` or `build.gradle`).
 
 ---
 

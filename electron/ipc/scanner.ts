@@ -26,7 +26,6 @@ export function scanJavaProject(opts: ScanOptions): {
   configHints: ConfigHints
 } {
   const rootPath = opts.rootPath
-  const scanBase = opts.subPath ? path.join(rootPath, opts.subPath) : rootPath
   const excludeDirs = new Set([
     ...DEFAULT_EXCLUDE_DIRS,
     ...(opts.excludeDirs || [])
@@ -42,9 +41,9 @@ export function scanJavaProject(opts: ScanOptions): {
     walkDir(srcDir, excludeDirs, controllerFiles, javaFiles)
   }
 
-  // If no explicit src dirs found, walk from scanBase
+  // If no explicit src dirs found, walk from rootPath
   if (srcDirs.length === 0) {
-    walkDir(scanBase, excludeDirs, controllerFiles, javaFiles)
+    walkDir(rootPath, excludeDirs, controllerFiles, javaFiles)
   }
 
   // Parse application config files for context-path / port hints

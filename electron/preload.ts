@@ -5,7 +5,6 @@ export type PostEasyAPI = {
   selectFolder: () => Promise<string | null>
   scanFiles: (opts: {
     rootPath: string
-    subPath?: string
     excludeDirs?: string[]
   }) => Promise<{
     controllerFiles: string[]
