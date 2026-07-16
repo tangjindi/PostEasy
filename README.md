@@ -2,6 +2,8 @@
 
 > 跨平台桌面应用，扫描 Java Spring Controller 源码，一键生成可交互的离线 HTML API 文档。
 
+[English](README_EN.md)
+
 ---
 
 ## 📑 目录
